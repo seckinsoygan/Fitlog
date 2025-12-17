@@ -1,0 +1,196 @@
+// FitLog - Authentication Store with Firebase (Compat Mode)
+import { create } from 'zustand';
+import firebase from 'firebase/compat/app';
+import { auth, db } from '../config/firebase';
+
+export interface UserProfile {
+    uid: string;
+    email: string;
+    displayName: string;
+    photoURL?: string;
+    createdAt?: any;
+    lastLoginAt?: any;
+    // FitLog specific
+    weightUnit: 'kg' | 'lbs';
+    weeklyGoal: number;
+    restTimerDefault: number;
+    dailyCalorieGoal: number;
+}
+
+interface AuthState {
+    user: firebase.User | null;
+    userProfile: UserProfile | null;
+    isLoading: boolean;
+    isInitialized: boolean;
+    error: string | null;
+
+    // Actions
+    initialize: () => (() => void) | undefined;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, displayName: string) => Promise<void>;
+    signOut: () => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
+    updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
+    clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+    user: null,
+    userProfile: null,
+    isLoading: false,
+    isInitialized: false,
+    error: null,
+
+    initialize: () => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is signed in, fetch their profile
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        set({
+                            user,
+                            userProfile: userDoc.data() as UserProfile,
+                            isInitialized: true
+                        });
+                    } else {
+                        // Create default profile if doesn't exist
+                        const defaultProfile: UserProfile = {
+                            uid: user.uid,
+                            email: user.email || '',
+                            displayName: user.displayName || 'Sporcu',
+                            photoURL: user.photoURL || undefined,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            weightUnit: 'kg',
+                            weeklyGoal: 4,
+                            restTimerDefault: 90,
+                            dailyCalorieGoal: 2500,
+                        };
+                        await db.collection('users').doc(user.uid).set(defaultProfile);
+                        set({ user, userProfile: defaultProfile, isInitialized: true });
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    set({ user, userProfile: null, isInitialized: true });
+                }
+            } else {
+                set({ user: null, userProfile: null, isInitialized: true });
+            }
+        });
+        return unsubscribe;
+    },
+
+    signIn: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            const result = await auth.signInWithEmailAndPassword(email, password);
+            // Update last login
+            if (result.user) {
+                await db.collection('users').doc(result.user.uid).update({
+                    lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+            }
+            set({ isLoading: false });
+        } catch (error: any) {
+            let errorMessage = 'Giriş yapılırken bir hata oluştu';
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'Bu e-posta ile kayıtlı kullanıcı bulunamadı';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage = 'Hatalı şifre';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Geçersiz e-posta adresi';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Çok fazla deneme. Lütfen daha sonra tekrar deneyin.';
+            }
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    signUp: async (email, password, displayName) => {
+        set({ isLoading: true, error: null });
+        try {
+            const result = await auth.createUserWithEmailAndPassword(email, password);
+
+            if (result.user) {
+                // Update display name
+                await result.user.updateProfile({ displayName });
+
+                // Create user profile in Firestore
+                const userProfile: UserProfile = {
+                    uid: result.user.uid,
+                    email: email,
+                    displayName: displayName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    weightUnit: 'kg',
+                    weeklyGoal: 4,
+                    restTimerDefault: 90,
+                    dailyCalorieGoal: 2500,
+                };
+
+                await db.collection('users').doc(result.user.uid).set(userProfile);
+                set({ userProfile, isLoading: false });
+            }
+        } catch (error: any) {
+            let errorMessage = 'Kayıt olurken bir hata oluştu';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'Bu e-posta adresi zaten kullanımda';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Şifre en az 6 karakter olmalıdır';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Geçersiz e-posta adresi';
+            }
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    signOut: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            await auth.signOut();
+            set({ user: null, userProfile: null, isLoading: false });
+        } catch (error: any) {
+            set({ isLoading: false, error: 'Çıkış yapılırken bir hata oluştu' });
+            throw error;
+        }
+    },
+
+    resetPassword: async (email) => {
+        set({ isLoading: true, error: null });
+        try {
+            await auth.sendPasswordResetEmail(email);
+            set({ isLoading: false });
+        } catch (error: any) {
+            let errorMessage = 'Şifre sıfırlama e-postası gönderilirken bir hata oluştu';
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'Bu e-posta ile kayıtlı kullanıcı bulunamadı';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Geçersiz e-posta adresi';
+            }
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    updateUserProfile: async (updates) => {
+        const { user, userProfile } = get();
+        if (!user || !userProfile) return;
+
+        set({ isLoading: true, error: null });
+        try {
+            await db.collection('users').doc(user.uid).update(updates);
+            set({
+                userProfile: { ...userProfile, ...updates },
+                isLoading: false
+            });
+        } catch (error: any) {
+            set({ isLoading: false, error: 'Profil güncellenirken bir hata oluştu' });
+            throw error;
+        }
+    },
+
+    clearError: () => set({ error: null }),
+}));

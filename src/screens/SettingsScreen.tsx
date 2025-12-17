@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Modal, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
     User,
     Timer,
@@ -15,10 +16,11 @@ import {
     Check,
     Target,
     Palette,
+    LogOut,
 } from 'lucide-react-native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
-import { useUserStore, useThemeStore, useNutritionStore } from '../store';
+import { useUserStore, useThemeStore, useNutritionStore, useAuthStore } from '../store';
 
 const showAlert = (title: string, message: string, buttons?: any[]) => {
     if (Platform.OS === 'web') {
@@ -87,13 +89,22 @@ const SettingItem: React.FC<SettingItemProps> = ({
 );
 
 export const SettingsScreen: React.FC = () => {
+    const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
     const mode = useThemeStore((state) => state.mode);
     const toggleTheme = useThemeStore((state) => state.toggleTheme);
     const { profile, updateProfile } = useUserStore();
     const { goals, setGoals } = useNutritionStore();
+    const { signOut, userProfile, isLoading: authLoading } = useAuthStore();
 
     const isDarkMode = mode === 'dark';
+
+    const handleLogout = () => {
+        showAlert('Çıkış Yap', 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?', [
+            { text: 'İptal', style: 'cancel' },
+            { text: 'Çıkış Yap', style: 'destructive', onPress: () => signOut() },
+        ]);
+    };
 
     // Modal states
     const [showNameModal, setShowNameModal] = useState(false);
@@ -165,10 +176,7 @@ export const SettingsScreen: React.FC = () => {
                 <H1>Ayarlar</H1>
 
                 {/* Profile Section */}
-                <Pressable style={styles.profileCard} onPress={() => {
-                    setTempName(profile.name);
-                    setShowNameModal(true);
-                }}>
+                <Pressable style={styles.profileCard} onPress={() => navigation.navigate('ProfileEdit' as never)}>
                     <View style={styles.avatar}>
                         <Typography variant="h1" color={colors.textOnPrimary}>
                             {profile.name.charAt(0)}
@@ -308,6 +316,19 @@ export const SettingsScreen: React.FC = () => {
                             icon={<HelpCircle size={20} color={colors.textSecondary} />}
                             title="Yardım & SSS"
                             onPress={() => showAlert('Yardım', 'FitLog uygulamasını kullandığınız için teşekkürler!')}
+                            colors={colors}
+                        />
+                    </View>
+                </View>
+
+                {/* Logout Section */}
+                <View style={styles.section}>
+                    <View style={styles.settingsGroup}>
+                        <SettingItem
+                            icon={<LogOut size={20} color={colors.error} />}
+                            title="Çıkış Yap"
+                            subtitle={userProfile?.email || 'Hesabından çıkış yap'}
+                            onPress={handleLogout}
                             colors={colors}
                         />
                     </View>

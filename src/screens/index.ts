@@ -9,3 +9,10 @@ export { WeeklyProgramScreen } from './WeeklyProgramScreen';
 export { NutritionScreen } from './NutritionScreen';
 export { TemplatesScreen } from './TemplatesScreen';
 export { TemplateEditorScreen } from './TemplateEditorScreen';
+export { ProfileEditScreen } from './ProfileEditScreen';
+
+// Auth Screens
+export { LoginScreen, RegisterScreen, ForgotPasswordScreen } from './auth';
+
+// Onboarding Screens
+export { OnboardingScreen, TrainingStyleScreen } from './onboarding';

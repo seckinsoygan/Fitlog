@@ -22,6 +22,8 @@ export interface Workout {
     id: string;
     name: string;
     exercises: Exercise[];
+    templateId?: string;
+    templateName?: string;
     startedAt?: number;
     completedAt?: number;
     duration?: number; // in seconds

@@ -10,6 +10,7 @@ import { Typography, Button } from '../components/atoms';
 import { Header, RestTimer } from '../components/molecules';
 import { ExerciseCard } from '../components/organisms';
 import { useWorkoutData, useTimer } from '../hooks';
+import { useWorkoutHistoryStore } from '../store';
 
 // Web-compatible alert function
 const showAlert = (
@@ -51,8 +52,8 @@ export const ActiveWorkoutScreen: React.FC = () => {
     } = useWorkoutData();
 
     // Workout duration timer
-    const { time: workoutDuration, formatTime } = useTimer({
-        autoStart: isWorkoutActive,
+    const { time: workoutDuration, formatTime, start: startTimer, isRunning: timerRunning } = useTimer({
+        autoStart: false,
     });
 
     // Start workout from template if coming from navigation
@@ -64,6 +65,13 @@ export const ActiveWorkoutScreen: React.FC = () => {
             }
         }
     }, [route.params?.templateId, isWorkoutActive, createWorkoutFromTemplate, startWorkout]);
+
+    // Start timer when workout becomes active
+    React.useEffect(() => {
+        if (isWorkoutActive && !timerRunning) {
+            startTimer();
+        }
+    }, [isWorkoutActive, timerRunning, startTimer]);
 
     const handleSetComplete = useCallback(
         (exerciseId: string, setId: string) => {
@@ -86,14 +94,55 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 {
                     text: 'Bitir',
                     style: 'default',
-                    onPress: () => {
+                    onPress: async () => {
+                        // Save workout to history
+                        if (activeWorkout) {
+                            const { saveWorkout } = useWorkoutHistoryStore.getState();
+
+                            const completedExercises = activeWorkout.exercises.map((ex) => ({
+                                exerciseId: ex.id,
+                                exerciseName: ex.name,
+                                muscleGroup: ex.muscleGroup || '',
+                                sets: ex.sets.map((s, idx) => ({
+                                    setNumber: idx + 1,
+                                    weight: parseFloat(s.weight) || 0,
+                                    reps: parseInt(s.reps) || 0,
+                                    isCompleted: s.completed,
+                                })),
+                                totalVolume: ex.sets.reduce((sum, s) => sum + ((parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0)), 0),
+                            }));
+
+                            const totalVolume = completedExercises.reduce((sum, ex) => sum + ex.totalVolume, 0);
+                            const totalSets = completedExercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                            const totalReps = completedExercises.reduce((sum, ex) =>
+                                sum + ex.sets.reduce((s, set) => s + set.reps, 0), 0);
+
+                            const now = new Date();
+                            const dateLabel = now.toLocaleDateString('tr-TR', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            });
+
+                            await saveWorkout({
+                                dateLabel,
+                                templateId: activeWorkout.templateId,
+                                templateName: activeWorkout.templateName,
+                                exercises: completedExercises,
+                                duration: workoutDuration,
+                                totalVolume,
+                                totalSets,
+                                totalReps,
+                            });
+                        }
+
                         endWorkout();
                         navigation.goBack();
                     },
                 },
             ]
         );
-    }, [endWorkout, navigation]);
+    }, [endWorkout, navigation, activeWorkout, workoutDuration]);
 
     const handleCancelWorkout = useCallback(() => {
         showAlert(
