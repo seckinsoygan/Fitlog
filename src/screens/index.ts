@@ -10,6 +10,8 @@ export { NutritionScreen } from './NutritionScreen';
 export { TemplatesScreen } from './TemplatesScreen';
 export { TemplateEditorScreen } from './TemplateEditorScreen';
 export { ProfileEditScreen } from './ProfileEditScreen';
+export { ProgressScreen } from './ProgressScreen';
+export { AchievementsScreen } from './AchievementsScreen';
 
 // Auth Screens
 export { LoginScreen, RegisterScreen, ForgotPasswordScreen } from './auth';

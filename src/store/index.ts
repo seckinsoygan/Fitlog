@@ -16,3 +16,8 @@ export { useWorkoutHistoryStore } from './workoutHistoryStore';
 export type { WorkoutRecord, CompletedExercise, WorkoutStats } from './workoutHistoryStore';
 export { useOnboardingStore, trainingStyleConfigs } from './onboardingStore';
 export type { TrainingStyle, OnboardingData } from './onboardingStore';
+export { useAchievementsStore } from './achievementsStore';
+export type { Achievement } from './achievementsStore';
+export { useWaterStore } from './waterStore';
+export type { WaterEntry, DailyWaterRecord } from './waterStore';
+

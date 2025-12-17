@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Check, ChevronRight } from 'lucide-react-native';
 import { layout, spacing } from '../../theme/spacing';
 import { Typography, H1, H2, Button } from '../../components/atoms';
-import { useThemeStore } from '../../store';
+import { useThemeStore, useUserStore } from '../../store';
 import {
     useOnboardingStore,
     TrainingStyle,
@@ -20,6 +20,7 @@ import {
 
 export const TrainingStyleScreen: React.FC = () => {
     const colors = useThemeStore((state) => state.colors);
+    const { createTemplatesForStyle } = useUserStore();
     const {
         onboardingData,
         setTrainingStyle,
@@ -49,8 +50,9 @@ export const TrainingStyleScreen: React.FC = () => {
     const handleContinue = () => {
         if (step === 1 && selectedStyle) {
             setStep(2);
-        } else if (step === 2 && selectedLevel) {
-            // Complete training style selection - templates are already set by default
+        } else if (step === 2 && selectedLevel && selectedStyle) {
+            // Create personalized templates based on selection
+            createTemplatesForStyle(selectedStyle, selectedLevel);
             completeTrainingStyleSelection();
         }
     };

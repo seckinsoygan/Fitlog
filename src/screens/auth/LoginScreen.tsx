@@ -1,4 +1,4 @@
-// FitLog - Login Screen
+// FitLog - Login Screen (Theme Compatible)
 import React, { useState } from 'react';
 import {
     View,
@@ -8,10 +8,9 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, Lock, Eye, EyeOff, Dumbbell } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, Dumbbell, ChevronRight } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../../theme/spacing';
 import { Typography, H1, Button } from '../../components/atoms';
@@ -27,6 +26,7 @@ export const LoginScreen: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [localError, setLocalError] = useState('');
+    const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
     const handleLogin = async () => {
         setLocalError('');
@@ -48,6 +48,14 @@ export const LoginScreen: React.FC = () => {
         }
     };
 
+    const handleGoogleSignIn = async () => {
+        setLocalError('Google ile giriş yakında aktif olacak');
+    };
+
+    const handleAppleSignIn = async () => {
+        setLocalError('Apple ile giriş yakında aktif olacak');
+    };
+
     const styles = createStyles(colors);
     const displayError = localError || error;
 
@@ -65,53 +73,73 @@ export const LoginScreen: React.FC = () => {
                     {/* Logo & Title */}
                     <View style={styles.header}>
                         <View style={styles.logoContainer}>
-                            <Dumbbell size={48} color={colors.primary} />
+                            <Dumbbell size={40} color={colors.primary} />
                         </View>
-                        <H1 style={{ textAlign: 'center' }}>FitLog'a Hoş Geldin</H1>
-                        <Typography variant="body" color={colors.textSecondary} style={{ textAlign: 'center' }}>
-                            Antrenmanlarını takip et, hedeflerine ulaş
+                        <H1>FitLog</H1>
+                        <Typography variant="body" color={colors.textSecondary}>
+                            Hesabına giriş yap
                         </Typography>
                     </View>
 
-                    {/* Form */}
-                    <View style={styles.form}>
+                    {/* Form Card */}
+                    <View style={styles.formCard}>
                         {/* Email Input */}
-                        <View style={styles.inputContainer}>
-                            <Mail size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="E-posta"
-                                placeholderTextColor={colors.textMuted}
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                                autoComplete="email"
-                            />
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                E-POSTA
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'email' && styles.inputFocused
+                            ]}>
+                                <Mail size={20} color={focusedInput === 'email' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="ornek@email.com"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                    autoComplete="email"
+                                    onFocus={() => setFocusedInput('email')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                            </View>
                         </View>
 
                         {/* Password Input */}
-                        <View style={styles.inputContainer}>
-                            <Lock size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Şifre"
-                                placeholderTextColor={colors.textMuted}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                                autoComplete="password"
-                            />
-                            <Pressable
-                                style={styles.eyeButton}
-                                onPress={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? (
-                                    <EyeOff size={20} color={colors.textMuted} />
-                                ) : (
-                                    <Eye size={20} color={colors.textMuted} />
-                                )}
-                            </Pressable>
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                ŞİFRE
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'password' && styles.inputFocused
+                            ]}>
+                                <Lock size={20} color={focusedInput === 'password' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="••••••••"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry={!showPassword}
+                                    autoComplete="password"
+                                    onFocus={() => setFocusedInput('password')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                                <Pressable
+                                    style={styles.eyeButton}
+                                    onPress={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff size={20} color={colors.textMuted} />
+                                    ) : (
+                                        <Eye size={20} color={colors.textMuted} />
+                                    )}
+                                </Pressable>
+                            </View>
                         </View>
 
                         {/* Forgot Password */}
@@ -134,33 +162,46 @@ export const LoginScreen: React.FC = () => {
                         )}
 
                         {/* Login Button */}
-                        <Button
-                            title={isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
-                            variant="primary"
-                            fullWidth
+                        <Pressable
+                            style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
                             onPress={handleLogin}
                             disabled={isLoading}
-                            loading={isLoading}
-                        />
+                        >
+                            <Typography variant="body" color={colors.textOnPrimary} style={{ fontWeight: '700' }}>
+                                {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
+                            </Typography>
+                            {!isLoading && <ChevronRight size={20} color={colors.textOnPrimary} />}
+                        </Pressable>
 
                         {/* Divider */}
                         <View style={styles.divider}>
                             <View style={styles.dividerLine} />
-                            <Typography variant="caption" color={colors.textMuted} style={styles.dividerText}>
+                            <Typography variant="caption" color={colors.textMuted}>
                                 veya
                             </Typography>
                             <View style={styles.dividerLine} />
                         </View>
 
-                        {/* Register Link */}
-                        <Pressable
-                            style={styles.registerLink}
-                            onPress={() => navigation.navigate('Register')}
-                        >
-                            <Typography variant="body" color={colors.textSecondary}>
-                                Hesabın yok mu?{' '}
-                            </Typography>
-                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '600' }}>
+                        {/* Social Buttons */}
+                        <View style={styles.socialButtons}>
+                            <Pressable style={styles.socialButton} onPress={handleGoogleSignIn}>
+                                <Typography variant="body" style={{ fontWeight: '600' }}>G</Typography>
+                                <Typography variant="body">Google</Typography>
+                            </Pressable>
+                            <Pressable style={[styles.socialButton, styles.appleButton]} onPress={handleAppleSignIn}>
+                                <Typography variant="body" color="#fff" style={{ fontWeight: '600' }}>🍎</Typography>
+                                <Typography variant="body" color="#fff">Apple</Typography>
+                            </Pressable>
+                        </View>
+                    </View>
+
+                    {/* Register Link */}
+                    <View style={styles.registerContainer}>
+                        <Typography variant="body" color={colors.textSecondary}>
+                            Hesabın yok mu?{' '}
+                        </Typography>
+                        <Pressable onPress={() => navigation.navigate('Register')}>
+                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '700' }}>
                                 Kayıt Ol
                             </Typography>
                         </Pressable>
@@ -186,36 +227,45 @@ const createStyles = (colors: any) => StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        gap: spacing[3],
-        marginBottom: spacing[8],
+        gap: spacing[2],
+        marginBottom: spacing[6],
     },
     logoContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 80,
+        height: 80,
+        borderRadius: 20,
         backgroundColor: colors.primaryMuted,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: spacing[2],
     },
-    form: {
+    formCard: {
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusLarge,
+        padding: spacing[5],
         gap: spacing[4],
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    inputGroup: {
+        gap: spacing[2],
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.surface,
+        backgroundColor: colors.background,
         borderRadius: layout.radiusMedium,
         borderWidth: 1,
         borderColor: colors.border,
-        paddingHorizontal: spacing[4],
+        paddingHorizontal: spacing[3],
+        gap: spacing[3],
     },
-    inputIcon: {
-        marginRight: spacing[3],
+    inputFocused: {
+        borderColor: colors.primary,
     },
     input: {
         flex: 1,
-        paddingVertical: spacing[4],
+        paddingVertical: spacing[3],
         fontSize: 16,
         color: colors.textPrimary,
         ...Platform.select({
@@ -223,10 +273,11 @@ const createStyles = (colors: any) => StyleSheet.create({
         }),
     },
     eyeButton: {
-        padding: spacing[2],
+        padding: spacing[1],
     },
     forgotPassword: {
         alignSelf: 'flex-end',
+        marginTop: -spacing[2],
     },
     errorContainer: {
         backgroundColor: colors.error + '15',
@@ -235,22 +286,51 @@ const createStyles = (colors: any) => StyleSheet.create({
         borderWidth: 1,
         borderColor: colors.error + '30',
     },
+    primaryButton: {
+        backgroundColor: colors.primary,
+        borderRadius: layout.radiusMedium,
+        paddingVertical: spacing[4],
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing[2],
+    },
+    buttonDisabled: {
+        opacity: 0.6,
+    },
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: spacing[2],
+        gap: spacing[3],
     },
     dividerLine: {
         flex: 1,
         height: 1,
         backgroundColor: colors.border,
     },
-    dividerText: {
-        paddingHorizontal: spacing[4],
+    socialButtons: {
+        flexDirection: 'row',
+        gap: spacing[3],
     },
-    registerLink: {
+    socialButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing[2],
+        paddingVertical: spacing[3],
+        borderRadius: layout.radiusMedium,
+        backgroundColor: colors.background,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    appleButton: {
+        backgroundColor: '#000',
+        borderColor: '#000',
+    },
+    registerContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        paddingVertical: spacing[2],
+        paddingVertical: spacing[5],
     },
 });

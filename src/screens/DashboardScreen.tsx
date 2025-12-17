@@ -1,5 +1,5 @@
 // FitLog - Dashboard Screen with Dynamic Theme & Enhanced UI
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
     View,
     StyleSheet,
@@ -18,11 +18,13 @@ import {
     Clock,
     ChevronRight,
     Zap,
+    Droplets,
+    Award,
 } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography } from '../components/atoms';
-import { useThemeStore, useUserStore, useWeeklyProgramStore, useNutritionStore } from '../store';
+import { useThemeStore, useUserStore, useWeeklyProgramStore, useNutritionStore, useWaterStore, useAchievementsStore, useWorkoutHistoryStore } from '../store';
 
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation<any>();
@@ -30,12 +32,38 @@ export const DashboardScreen: React.FC = () => {
     const { profile, templates } = useUserStore();
     const { getTodaysWorkout, activeProgram } = useWeeklyProgramStore();
     const { getTodayNutrition, goals } = useNutritionStore();
+    const { getTodayProgress, getTodayRecord, dailyGoal, glassSize, addWater, records } = useWaterStore();
+    const { getUnlockedAchievements, totalPoints, checkAchievements } = useAchievementsStore();
+    const { stats, getWorkoutStats, loadWorkoutHistory, workoutHistory } = useWorkoutHistoryStore();
+
+    // Refresh data when screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            console.log('📊 Dashboard: Refreshing data...');
+            // Refresh workout stats
+            getWorkoutStats();
+            // Check achievements based on current stats
+            checkAchievements({
+                totalWorkouts: stats.totalWorkouts,
+                totalVolume: stats.totalVolume,
+                streak: 0, // TODO: Calculate streak
+                thisWeekWorkouts: stats.thisWeekWorkouts,
+            });
+        }, [stats.totalWorkouts, stats.totalVolume])
+    );
 
     const todaysWorkout = getTodaysWorkout();
     const todaysNutrition = getTodayNutrition();
     const todayTemplate = todaysWorkout?.templateId
         ? templates.find(t => t.id === todaysWorkout.templateId)
         : null;
+
+    const waterProgress = getTodayProgress();
+    const waterRecord = getTodayRecord();
+    const unlockedBadges = getUnlockedAchievements();
+
+    // Use stats from workoutHistoryStore for weekly count
+    const thisWeekWorkouts = stats.thisWeekWorkouts;
 
     const greeting = useMemo(() => {
         const hour = new Date().getHours();
@@ -45,6 +73,7 @@ export const DashboardScreen: React.FC = () => {
     }, []);
 
     const calorieProgress = Math.min(100, (todaysNutrition.totalCalories / goals.dailyCalories) * 100);
+    const weeklyGoalProgress = Math.min(100, (thisWeekWorkouts / profile.weeklyGoal) * 100);
 
     const handleStartWorkout = (templateId?: string) => {
         navigation.navigate('ActiveWorkout', { templateId });
@@ -173,19 +202,62 @@ export const DashboardScreen: React.FC = () => {
                     {/* Weekly Goal Card */}
                     <Pressable
                         style={styles.statCard}
-                        onPress={() => navigation.navigate('Program')}
+                        onPress={() => navigation.navigate('Progress')}
                     >
                         <View style={[styles.statIcon, { backgroundColor: colors.success + '20' }]}>
                             <Trophy size={20} color={colors.success} />
                         </View>
                         <View style={styles.statInfo}>
-                            <Typography variant="h3">2/{profile.weeklyGoal}</Typography>
+                            <Typography variant="h3">{thisWeekWorkouts}/{profile.weeklyGoal}</Typography>
                             <Typography variant="caption" color={colors.textMuted}>
                                 bu hafta
                             </Typography>
                         </View>
                         <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${(2 / profile.weeklyGoal) * 100}%`, backgroundColor: colors.success }]} />
+                            <View style={[styles.progressFill, { width: `${weeklyGoalProgress}%`, backgroundColor: colors.success }]} />
+                        </View>
+                    </Pressable>
+                </View>
+
+                {/* Water & Achievements Row */}
+                <View style={styles.statsRow}>
+                    {/* Water Card */}
+                    <Pressable
+                        style={styles.statCard}
+                        onPress={() => addWater()}
+                    >
+                        <View style={[styles.statIcon, { backgroundColor: colors.info + '20' }]}>
+                            <Droplets size={20} color={colors.info} />
+                        </View>
+                        <View style={styles.statInfo}>
+                            <Typography variant="h3">{(waterRecord.totalAmount / 1000).toFixed(1)}L</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>
+                                / {(dailyGoal / 1000).toFixed(1)}L su
+                            </Typography>
+                        </View>
+                        <View style={styles.progressBar}>
+                            <View style={[styles.progressFill, { width: `${waterProgress}%`, backgroundColor: colors.info }]} />
+                        </View>
+                    </Pressable>
+
+                    {/* Achievements Card */}
+                    <Pressable
+                        style={styles.statCard}
+                        onPress={() => navigation.navigate('Achievements')}
+                    >
+                        <View style={[styles.statIcon, { backgroundColor: '#9B59B6' + '20' }]}>
+                            <Award size={20} color="#9B59B6" />
+                        </View>
+                        <View style={styles.statInfo}>
+                            <Typography variant="h3">{unlockedBadges.length}</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>
+                                rozet • {totalPoints}p
+                            </Typography>
+                        </View>
+                        <View style={styles.badgeRow}>
+                            {unlockedBadges.slice(0, 3).map((badge, i) => (
+                                <Typography key={badge.id} variant="caption">{badge.emoji}</Typography>
+                            ))}
                         </View>
                     </Pressable>
                 </View>
@@ -472,5 +544,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     },
     dayDotToday: {
         backgroundColor: colors.textOnPrimary,
+    },
+    badgeRow: {
+        flexDirection: 'row',
+        gap: spacing[1],
     },
 });

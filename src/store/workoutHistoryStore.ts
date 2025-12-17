@@ -79,24 +79,45 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
         set({ isLoading: true, error: null });
 
         try {
+            // Clean undefined values to prevent Firestore errors
+            const cleanExercises = (workout.exercises || []).map(ex => ({
+                exerciseId: ex.exerciseId || '',
+                exerciseName: ex.exerciseName || '',
+                muscleGroup: ex.muscleGroup || '',
+                sets: (ex.sets || []).map(s => ({
+                    setNumber: s.setNumber || 0,
+                    weight: s.weight || 0,
+                    reps: s.reps || 0,
+                    isCompleted: s.isCompleted || false,
+                })),
+                totalVolume: ex.totalVolume || 0,
+            }));
+
             const workoutData = {
-                ...workout,
                 userId: user.uid,
+                dateLabel: workout.dateLabel || new Date().toLocaleDateString('tr-TR'),
+                templateId: workout.templateId || '',
+                templateName: workout.templateName || 'Antrenman',
+                exercises: cleanExercises,
+                duration: workout.duration || 0,
+                totalVolume: workout.totalVolume || 0,
+                totalSets: workout.totalSets || 0,
+                totalReps: workout.totalReps || 0,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             };
 
             const docRef = await db.collection('workouts').add(workoutData);
 
-            const savedWorkout = { ...workoutData, id: docRef.id } as WorkoutRecord;
+            const savedWorkout = { ...workoutData, id: docRef.id, createdAt: new Date() } as WorkoutRecord;
             set((state) => ({
                 workoutHistory: [savedWorkout, ...state.workoutHistory],
                 isLoading: false,
             }));
 
             get().getWorkoutStats();
-            console.log('Workout saved successfully:', docRef.id);
+            console.log('✅ Workout saved successfully:', docRef.id);
         } catch (error: any) {
-            console.error('Error saving workout:', error);
+            console.error('❌ Error saving workout:', error);
             set({ isLoading: false, error: 'Antrenman kaydedilemedi' });
         }
     },
@@ -108,9 +129,9 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
         set({ isLoading: true, error: null });
 
         try {
+            // Simple query without orderBy to avoid index requirement
             const snapshot = await db.collection('workouts')
                 .where('userId', '==', user.uid)
-                .orderBy('createdAt', 'desc')
                 .limit(50)
                 .get();
 
@@ -124,10 +145,18 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
                 } as WorkoutRecord);
             });
 
+            // Sort locally instead of in Firestore query
+            workouts.sort((a, b) => {
+                const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+                const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+                return dateB - dateA;
+            });
+
             set({ workoutHistory: workouts, isLoading: false });
             get().getWorkoutStats();
+            console.log('✅ Loaded', workouts.length, 'workouts from Firestore');
         } catch (error: any) {
-            console.error('Error loading workout history:', error);
+            console.error('❌ Error loading workout history:', error);
             set({ isLoading: false, error: 'Antrenman geçmişi yüklenemedi' });
         }
     },

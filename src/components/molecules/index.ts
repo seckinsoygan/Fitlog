@@ -4,3 +4,5 @@ export { Header } from './Header';
 export { StatCard } from './StatCard';
 export { WorkoutCard } from './WorkoutCard';
 export { RestTimer } from './RestTimer';
+export { WaterTracker } from './WaterTracker';
+

@@ -1,36 +1,93 @@
-// FitLog - Rest Timer Component
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable, Vibration } from 'react-native';
-import { Play, Pause, RotateCcw, Plus, Minus } from 'lucide-react-native';
-import { colors } from '../../theme/colors';
-import { layout, spacing } from '../../theme/spacing';
-import { Typography, Button } from '../atoms';
+// FitLog - Advanced Rest Timer Component
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+    View,
+    StyleSheet,
+    Pressable,
+    Animated,
+    Vibration,
+    Platform,
+} from 'react-native';
+import { Play, Pause, RotateCcw, Plus, Minus, X, Volume2, VolumeX } from 'lucide-react-native';
+import { Typography, H1 } from '../atoms';
+import { useThemeStore, useUserStore } from '../../store';
+import { spacing, layout } from '../../theme/spacing';
 
 interface RestTimerProps {
-    initialSeconds?: number;
+    isVisible: boolean;
+    onClose: () => void;
     onComplete?: () => void;
+    initialTime?: number; // seconds
     autoStart?: boolean;
 }
 
 export const RestTimer: React.FC<RestTimerProps> = ({
-    initialSeconds = 90,
+    isVisible,
+    onClose,
     onComplete,
-    autoStart = true,
+    initialTime,
+    autoStart = false,
 }) => {
-    const [seconds, setSeconds] = useState(initialSeconds);
+    const colors = useThemeStore((state) => state.colors);
+    const { profile } = useUserStore();
+
+    const defaultTime = initialTime || profile.restTimerDefault || 90;
+
+    const [timeLeft, setTimeLeft] = useState(defaultTime);
     const [isRunning, setIsRunning] = useState(autoStart);
-    const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+    const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
 
+    const progressAnim = useRef(new Animated.Value(1)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Presets
+    const presets = [30, 60, 90, 120, 180];
+
+    // Format time
+    const formatTime = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Progress percentage
+    const progress = timeLeft / defaultTime;
+
+    // Handle timer completion
+    const handleComplete = useCallback(() => {
+        setIsRunning(false);
+
+        // Vibration
+        if (Platform.OS !== 'web') {
+            Vibration.vibrate([0, 500, 200, 500]);
+        }
+
+        // Pulse animation
+        Animated.sequence([
+            Animated.timing(pulseAnim, {
+                toValue: 1.1,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(pulseAnim, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+        ]).start();
+
+        onComplete?.();
+    }, [onComplete, pulseAnim]);
+
+    // Timer logic
     useEffect(() => {
-        let interval: NodeJS.Timeout;
-
-        if (isRunning && seconds > 0) {
-            interval = setInterval(() => {
-                setSeconds((prev) => {
+        if (isRunning && timeLeft > 0) {
+            intervalRef.current = setInterval(() => {
+                setTimeLeft((prev) => {
                     if (prev <= 1) {
-                        setIsRunning(false);
-                        Vibration.vibrate([0, 500, 200, 500]);
-                        onComplete?.();
+                        handleComplete();
                         return 0;
                     }
                     return prev - 1;
@@ -38,160 +95,308 @@ export const RestTimer: React.FC<RestTimerProps> = ({
             }, 1000);
         }
 
-        return () => clearInterval(interval);
-    }, [isRunning, seconds, onComplete]);
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [isRunning, handleComplete]);
 
-    const formatTime = (secs: number) => {
-        const mins = Math.floor(secs / 60);
-        const remainingSecs = secs % 60;
-        return `${mins}:${remainingSecs.toString().padStart(2, '0')}`;
+    // Progress animation
+    useEffect(() => {
+        Animated.timing(progressAnim, {
+            toValue: progress,
+            duration: 300,
+            useNativeDriver: false,
+        }).start();
+    }, [progress, progressAnim]);
+
+    // Reset when time changes
+    useEffect(() => {
+        setTimeLeft(defaultTime);
+        progressAnim.setValue(1);
+    }, [defaultTime]);
+
+    const handleStart = () => setIsRunning(true);
+    const handlePause = () => setIsRunning(false);
+
+    const handleReset = () => {
+        setIsRunning(false);
+        setTimeLeft(selectedPreset || defaultTime);
+        progressAnim.setValue(1);
     };
 
-    const handleToggle = useCallback(() => {
-        setIsRunning(!isRunning);
-    }, [isRunning]);
+    const handleAdjust = (seconds: number) => {
+        const newTime = Math.max(0, Math.min(600, timeLeft + seconds));
+        setTimeLeft(newTime);
+    };
 
-    const handleReset = useCallback(() => {
-        setSeconds(totalSeconds);
+    const handlePreset = (seconds: number) => {
+        setSelectedPreset(seconds);
+        setTimeLeft(seconds);
         setIsRunning(false);
-    }, [totalSeconds]);
+        progressAnim.setValue(1);
+    };
 
-    const handleAddTime = useCallback((amount: number) => {
-        setSeconds((prev) => Math.max(0, prev + amount));
-        setTotalSeconds((prev) => Math.max(0, prev + amount));
-    }, []);
+    if (!isVisible) return null;
 
-    const progress = seconds / totalSeconds;
+    const styles = createStyles(colors);
+
+    // Determine progress color based on time left
+    const getProgressColor = () => {
+        if (timeLeft <= 10) return colors.error;
+        if (timeLeft <= 30) return colors.warning;
+        return colors.primary;
+    };
 
     return (
-        <View style={styles.container}>
-            <Typography variant="label" style={styles.title}>
-                DİNLENME SÜRESİ
-            </Typography>
-
-            {/* Progress Ring Simulation */}
-            <View style={styles.timerContainer}>
-                <View
-                    style={[
-                        styles.progressBackground,
-                        { borderColor: colors.surface },
-                    ]}
-                />
-                <View
-                    style={[
-                        styles.progressForeground,
-                        {
-                            borderColor: seconds > 10 ? colors.primary : colors.warning,
-                            transform: [{ rotate: `${(1 - progress) * 360}deg` }],
-                        },
-                    ]}
-                />
-                <View style={styles.timerInner}>
-                    <Typography variant="dataLarge" color={seconds > 10 ? colors.primary : colors.warning}>
-                        {formatTime(seconds)}
-                    </Typography>
+        <View style={styles.overlay}>
+            <Animated.View style={[styles.container, { transform: [{ scale: pulseAnim }] }]}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <Typography variant="h2">Dinlenme Süresi</Typography>
+                    <View style={styles.headerActions}>
+                        <Pressable
+                            style={styles.iconButton}
+                            onPress={() => setSoundEnabled(!soundEnabled)}
+                        >
+                            {soundEnabled ? (
+                                <Volume2 size={20} color={colors.textSecondary} />
+                            ) : (
+                                <VolumeX size={20} color={colors.textMuted} />
+                            )}
+                        </Pressable>
+                        <Pressable style={styles.iconButton} onPress={onClose}>
+                            <X size={24} color={colors.textSecondary} />
+                        </Pressable>
+                    </View>
                 </View>
-            </View>
 
-            {/* Time Adjustment */}
-            <View style={styles.adjustContainer}>
-                <Pressable
-                    style={styles.adjustButton}
-                    onPress={() => handleAddTime(-15)}
-                >
-                    <Minus size={20} color={colors.textSecondary} />
-                    <Typography variant="caption">15s</Typography>
+                {/* Timer Circle */}
+                <View style={styles.timerContainer}>
+                    <View style={styles.progressRing}>
+                        <Animated.View
+                            style={[
+                                styles.progressFill,
+                                {
+                                    backgroundColor: getProgressColor(),
+                                    transform: [{
+                                        rotate: progressAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ['360deg', '0deg'],
+                                        }),
+                                    }],
+                                },
+                            ]}
+                        />
+                        <View style={styles.timerInner}>
+                            <H1 style={[styles.timerText, { color: getProgressColor() }]}>
+                                {formatTime(timeLeft)}
+                            </H1>
+                            <Typography variant="caption" color={colors.textSecondary}>
+                                {isRunning ? 'Devam ediyor...' : 'Durduruldu'}
+                            </Typography>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Adjust Buttons */}
+                <View style={styles.adjustButtons}>
+                    <Pressable
+                        style={styles.adjustButton}
+                        onPress={() => handleAdjust(-15)}
+                    >
+                        <Minus size={20} color={colors.textPrimary} />
+                        <Typography variant="caption">15s</Typography>
+                    </Pressable>
+
+                    <Pressable
+                        style={[styles.controlButton, isRunning ? styles.pauseButton : styles.playButton]}
+                        onPress={isRunning ? handlePause : handleStart}
+                    >
+                        {isRunning ? (
+                            <Pause size={32} color="#fff" />
+                        ) : (
+                            <Play size={32} color="#fff" style={{ marginLeft: 4 }} />
+                        )}
+                    </Pressable>
+
+                    <Pressable
+                        style={styles.adjustButton}
+                        onPress={() => handleAdjust(15)}
+                    >
+                        <Plus size={20} color={colors.textPrimary} />
+                        <Typography variant="caption">15s</Typography>
+                    </Pressable>
+                </View>
+
+                {/* Reset Button */}
+                <Pressable style={styles.resetButton} onPress={handleReset}>
+                    <RotateCcw size={18} color={colors.textSecondary} />
+                    <Typography variant="body" color={colors.textSecondary}>
+                        Sıfırla
+                    </Typography>
                 </Pressable>
 
-                <Pressable style={styles.controlButton} onPress={handleToggle}>
-                    {isRunning ? (
-                        <Pause size={24} color={colors.textPrimary} />
-                    ) : (
-                        <Play size={24} color={colors.textPrimary} fill={colors.textPrimary} />
-                    )}
-                </Pressable>
-
-                <Pressable style={styles.controlButton} onPress={handleReset}>
-                    <RotateCcw size={20} color={colors.textSecondary} />
-                </Pressable>
-
-                <Pressable
-                    style={styles.adjustButton}
-                    onPress={() => handleAddTime(15)}
-                >
-                    <Plus size={20} color={colors.textSecondary} />
-                    <Typography variant="caption">15s</Typography>
-                </Pressable>
-            </View>
-
-            {/* Skip Button */}
-            <Button
-                title="Dinlenmeyi Atla"
-                variant="ghost"
-                onPress={onComplete || (() => { })}
-                style={styles.skipButton}
-            />
+                {/* Presets */}
+                <View style={styles.presets}>
+                    <Typography variant="label" color={colors.textSecondary} style={styles.presetsLabel}>
+                        HIZLI SEÇENEKLER
+                    </Typography>
+                    <View style={styles.presetsRow}>
+                        {presets.map((preset) => (
+                            <Pressable
+                                key={preset}
+                                style={[
+                                    styles.presetButton,
+                                    selectedPreset === preset && styles.presetButtonActive,
+                                ]}
+                                onPress={() => handlePreset(preset)}
+                            >
+                                <Typography
+                                    variant="body"
+                                    color={selectedPreset === preset ? colors.textOnPrimary : colors.textPrimary}
+                                    style={{ fontWeight: '600' }}
+                                >
+                                    {preset >= 60 ? `${preset / 60}dk` : `${preset}s`}
+                                </Typography>
+                            </Pressable>
+                        ))}
+                    </View>
+                </View>
+            </Animated.View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
+const createStyles = (colors: any) => StyleSheet.create({
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: colors.overlay,
+        justifyContent: 'center',
         alignItems: 'center',
-        padding: layout.cardPadding,
+        zIndex: 1000,
+    },
+    container: {
         backgroundColor: colors.surface,
         borderRadius: layout.radiusLarge,
-        marginVertical: spacing[4],
+        padding: spacing[6],
+        width: '90%',
+        maxWidth: 400,
+        alignItems: 'center',
     },
-    title: {
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
         marginBottom: spacing[4],
     },
-    timerContainer: {
-        width: 160,
-        height: 160,
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-    },
-    progressBackground: {
-        position: 'absolute',
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        borderWidth: 6,
-    },
-    progressForeground: {
-        position: 'absolute',
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        borderWidth: 6,
-        borderRightColor: 'transparent',
-        borderBottomColor: 'transparent',
-    },
-    timerInner: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    adjustContainer: {
+    headerActions: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing[4],
-        marginTop: spacing[4],
+        gap: spacing[2],
     },
-    adjustButton: {
-        alignItems: 'center',
-        gap: spacing[1],
-    },
-    controlButton: {
-        width: 48,
-        height: 48,
-        borderRadius: layout.radiusFull,
+    iconButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: colors.background,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    skipButton: {
+    timerContainer: {
+        marginVertical: spacing[4],
+    },
+    progressRing: {
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        backgroundColor: colors.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 8,
+        borderColor: colors.border,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        opacity: 0.2,
+    },
+    timerInner: {
+        alignItems: 'center',
+        gap: spacing[1],
+    },
+    timerText: {
+        fontSize: 48,
+        fontWeight: '800',
+    },
+    adjustButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[4],
+        marginVertical: spacing[4],
+    },
+    adjustButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: colors.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    controlButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    playButton: {
+        backgroundColor: colors.primary,
+    },
+    pauseButton: {
+        backgroundColor: colors.warning,
+    },
+    resetButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
+        padding: spacing[3],
+    },
+    presets: {
+        width: '100%',
         marginTop: spacing[4],
+        paddingTop: spacing[4],
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+    },
+    presetsLabel: {
+        marginBottom: spacing[3],
+    },
+    presetsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: spacing[2],
+    },
+    presetButton: {
+        flex: 1,
+        paddingVertical: spacing[3],
+        borderRadius: layout.radiusMedium,
+        backgroundColor: colors.background,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    presetButtonActive: {
+        backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
 });

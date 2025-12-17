@@ -8,21 +8,89 @@ import {
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Dumbbell, ChevronRight, Copy, Clock, Edit3, Play } from 'lucide-react-native';
+import { Plus, Dumbbell, ChevronRight, Copy, Clock, Edit3, Play, Download, Zap, Target } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
-import { Typography, H1, Button } from '../components/atoms';
+import { Typography, H1, H2, Button } from '../components/atoms';
 import { useUserStore, useThemeStore } from '../store';
+
+// Preset programs
+const presetPrograms = [
+    {
+        id: 'preset-ppl',
+        name: 'Push/Pull/Legs',
+        description: '3 günlük klasik bölme programı',
+        emoji: '💪',
+        color: '#FF6B6B',
+        exercises: [
+            { name: 'Bench Press', sets: 4 },
+            { name: 'Shoulder Press', sets: 3 },
+            { name: 'Triceps Pushdown', sets: 3 },
+        ],
+    },
+    {
+        id: 'preset-fullbody',
+        name: 'Full Body',
+        description: 'Haftada 3 gün tam vücut',
+        emoji: '🏋️',
+        color: '#4ECDC4',
+        exercises: [
+            { name: 'Squat', sets: 4 },
+            { name: 'Bench Press', sets: 4 },
+            { name: 'Deadlift', sets: 3 },
+        ],
+    },
+    {
+        id: 'preset-upper-lower',
+        name: 'Upper/Lower',
+        description: '4 günlük üst/alt bölme',
+        emoji: '⚡',
+        color: '#9B59B6',
+        exercises: [
+            { name: 'Bench Press', sets: 4 },
+            { name: 'Row', sets: 4 },
+            { name: 'Pull Up', sets: 3 },
+        ],
+    },
+    {
+        id: 'preset-hiit',
+        name: 'HIIT Devre',
+        description: 'Yüksek yoğunluklu interval',
+        emoji: '🔥',
+        color: '#F39C12',
+        exercises: [
+            { name: 'Burpee', sets: 4 },
+            { name: 'Mountain Climber', sets: 4 },
+            { name: 'Jump Squat', sets: 4 },
+        ],
+    },
+];
 
 export const TemplatesScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { templates, duplicateTemplate } = useUserStore();
+    const { templates, duplicateTemplate, addPresetProgram } = useUserStore();
 
     const handleCreateNew = () => navigation.navigate('TemplateEditor', { isNew: true });
     const handleEditTemplate = (templateId: string) => navigation.navigate('TemplateEditor', { templateId, isNew: false });
     const handleDuplicate = (templateId: string) => duplicateTemplate(templateId);
     const handleStartWorkout = (templateId: string) => navigation.navigate('ActiveWorkout', { templateId });
+
+    const handleAddPreset = (preset: typeof presetPrograms[0]) => {
+        addPresetProgram({
+            name: preset.name,
+            description: preset.description,
+            color: preset.color,
+            exercises: preset.exercises.map((ex, i) => ({
+                id: `${preset.id}-ex-${i}`,
+                exerciseId: ex.name.toLowerCase().replace(/\s/g, '-'),
+                name: ex.name,
+                defaultSets: ex.sets,
+                defaultReps: 10,
+                order: i,
+            })),
+        });
+    };
 
     const styles = createStyles(colors);
 
@@ -48,6 +116,35 @@ export const TemplatesScreen: React.FC = () => {
                         icon={<Plus size={16} color={colors.textOnPrimary} />}
                         onPress={handleCreateNew}
                     />
+                </View>
+
+                {/* Preset Programs */}
+                <View style={styles.presetsSection}>
+                    <H2>⚡ Hazır Programlar</H2>
+                    <Typography variant="caption" color={colors.textSecondary} style={{ marginBottom: spacing[3] }}>
+                        Hızlıca ekle ve özelleştir
+                    </Typography>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsScroll}>
+                        {presetPrograms.map((preset) => (
+                            <Pressable
+                                key={preset.id}
+                                style={[styles.presetCard, { borderColor: preset.color + '50' }]}
+                                onPress={() => handleAddPreset(preset)}
+                            >
+                                <View style={[styles.presetEmoji, { backgroundColor: preset.color + '20' }]}>
+                                    <Typography variant="h1">{preset.emoji}</Typography>
+                                </View>
+                                <Typography variant="body" style={{ fontWeight: '600' }}>{preset.name}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                                    {preset.description}
+                                </Typography>
+                                <View style={[styles.presetAddButton, { backgroundColor: preset.color }]}>
+                                    <Download size={14} color="#fff" />
+                                    <Typography variant="caption" color="#fff">Ekle</Typography>
+                                </View>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
                 </View>
 
                 {/* Templates List */}
@@ -162,4 +259,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     startButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing[2], paddingVertical: spacing[3], backgroundColor: colors.primary, ...Platform.select({ web: { cursor: 'pointer' } }) },
     emptyState: { alignItems: 'center', padding: spacing[8], gap: spacing[4] },
     emptyIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.surfaceLight, alignItems: 'center', justifyContent: 'center' },
+    presetsSection: { marginBottom: spacing[2] },
+    presetsScroll: { gap: spacing[3], paddingRight: spacing[4] },
+    presetCard: { width: 150, backgroundColor: colors.surface, borderRadius: layout.radiusMedium, padding: spacing[3], gap: spacing[2], borderWidth: 1, alignItems: 'center' },
+    presetEmoji: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+    presetAddButton: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[2], paddingHorizontal: spacing[3], borderRadius: layout.radiusSmall, marginTop: spacing[1] },
 });

@@ -4,7 +4,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, Flame, Dumbbell, Settings, ClipboardList } from 'lucide-react-native';
+import { Home, Calendar, Flame, Dumbbell, Settings, ClipboardList, TrendingUp } from 'lucide-react-native';
 import {
     DashboardScreen,
     ActiveWorkoutScreen,
@@ -22,8 +22,10 @@ import {
     ForgotPasswordScreen,
     OnboardingScreen,
     TrainingStyleScreen,
+    ProgressScreen,
+    AchievementsScreen,
 } from '../screens';
-import { useThemeStore, useAuthStore, useOnboardingStore } from '../store';
+import { useThemeStore, useAuthStore, useOnboardingStore, useUserStore } from '../store';
 import { Typography } from '../components/atoms';
 
 // Type definitions
@@ -42,12 +44,13 @@ export type RootStackParamList = {
     ExerciseDetail: { exerciseId: string };
     TemplateEditor: { templateId?: string; isNew?: boolean };
     ProfileEdit: undefined;
+    Achievements: undefined;
 };
 
 export type TabParamList = {
     Home: undefined;
     Templates: undefined;
-    Program: undefined;
+    Progress: undefined;
     Nutrition: undefined;
     Exercises: { selectMode?: boolean } | undefined;
     Settings: undefined;
@@ -113,11 +116,11 @@ const TabNavigator: React.FC = () => {
                 }}
             />
             <Tab.Screen
-                name="Program"
-                component={WeeklyProgramScreen}
+                name="Progress"
+                component={ProgressScreen}
                 options={{
-                    tabBarLabel: 'Haftalık',
-                    tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+                    tabBarLabel: 'İlerleme',
+                    tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
                 }}
             />
             <Tab.Screen
@@ -243,6 +246,13 @@ const AppNavigatorStack: React.FC = () => {
                     animation: 'slide_from_right',
                 }}
             />
+            <Stack.Screen
+                name="Achievements"
+                component={AchievementsScreen}
+                options={{
+                    animation: 'slide_from_right',
+                }}
+            />
         </Stack.Navigator>
     );
 };
@@ -253,6 +263,7 @@ export const AppNavigator: React.FC = () => {
     const colors = useThemeStore((state) => state.colors);
     const { user, isInitialized, initialize } = useAuthStore();
     const { hasCompletedOnboarding, hasSelectedTrainingStyle } = useOnboardingStore();
+    const { loadFromFirebase } = useUserStore();
 
     // Initialize auth listener
     useEffect(() => {
@@ -261,6 +272,30 @@ export const AppNavigator: React.FC = () => {
             if (unsubscribe) unsubscribe();
         };
     }, []);
+
+    // Load data from Firestore when user logs in
+    useEffect(() => {
+        if (user && isInitialized) {
+            console.log('User logged in, loading data from Firebase...');
+
+            // Load templates
+            loadFromFirebase().then((success) => {
+                if (success) {
+                    console.log('✅ User templates loaded from Firebase');
+                } else {
+                    console.log('⚠️ No templates found or failed to load');
+                }
+            });
+
+            // Load workout history
+            import('../store/workoutHistoryStore').then(({ useWorkoutHistoryStore }) => {
+                const { loadWorkoutHistory } = useWorkoutHistoryStore.getState();
+                loadWorkoutHistory().then(() => {
+                    console.log('✅ Workout history loaded from Firebase');
+                });
+            });
+        }
+    }, [user, isInitialized]);
 
     const navigationTheme = mode === 'dark' ? {
         ...DarkTheme,

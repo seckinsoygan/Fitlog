@@ -1,4 +1,4 @@
-// FitLog - Register Screen
+// FitLog - Register Screen (Theme Compatible)
 import React, { useState } from 'react';
 import {
     View,
@@ -10,10 +10,10 @@ import {
     ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, Lock, Eye, EyeOff, User, ArrowLeft, Dumbbell } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, User, ArrowLeft, Check } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../../theme/spacing';
-import { Typography, H1, Button } from '../../components/atoms';
+import { Typography, H1 } from '../../components/atoms';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store';
 
@@ -28,6 +28,10 @@ export const RegisterScreen: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [localError, setLocalError] = useState('');
+    const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+    const hasMinLength = password.length >= 6;
+    const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
     const handleRegister = async () => {
         setLocalError('');
@@ -41,15 +45,11 @@ export const RegisterScreen: React.FC = () => {
             setLocalError('E-posta adresi gerekli');
             return;
         }
-        if (!password) {
-            setLocalError('Şifre gerekli');
-            return;
-        }
-        if (password.length < 6) {
+        if (!hasMinLength) {
             setLocalError('Şifre en az 6 karakter olmalı');
             return;
         }
-        if (password !== confirmPassword) {
+        if (!passwordsMatch) {
             setLocalError('Şifreler eşleşmiyor');
             return;
         }
@@ -66,6 +66,13 @@ export const RegisterScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+                    <ArrowLeft size={24} color={colors.textPrimary} />
+                </Pressable>
+            </View>
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
@@ -75,88 +82,126 @@ export const RegisterScreen: React.FC = () => {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Back Button */}
-                    <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <ArrowLeft size={24} color={colors.textPrimary} />
-                    </Pressable>
-
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.logoContainer}>
-                            <Dumbbell size={40} color={colors.primary} />
-                        </View>
-                        <H1 style={{ textAlign: 'center' }}>Hesap Oluştur</H1>
-                        <Typography variant="body" color={colors.textSecondary} style={{ textAlign: 'center' }}>
+                    {/* Title */}
+                    <View style={styles.titleContainer}>
+                        <H1>Hesap Oluştur</H1>
+                        <Typography variant="body" color={colors.textSecondary}>
                             Fitness yolculuğuna başla
                         </Typography>
                     </View>
 
-                    {/* Form */}
-                    <View style={styles.form}>
+                    {/* Form Card */}
+                    <View style={styles.formCard}>
                         {/* Name Input */}
-                        <View style={styles.inputContainer}>
-                            <User size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Adın"
-                                placeholderTextColor={colors.textMuted}
-                                value={displayName}
-                                onChangeText={setDisplayName}
-                                autoComplete="name"
-                            />
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                İSİM
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'name' && styles.inputFocused
+                            ]}>
+                                <User size={20} color={focusedInput === 'name' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Adınız"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={displayName}
+                                    onChangeText={setDisplayName}
+                                    autoCapitalize="words"
+                                    onFocus={() => setFocusedInput('name')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                            </View>
                         </View>
 
                         {/* Email Input */}
-                        <View style={styles.inputContainer}>
-                            <Mail size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="E-posta"
-                                placeholderTextColor={colors.textMuted}
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                                autoComplete="email"
-                            />
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                E-POSTA
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'email' && styles.inputFocused
+                            ]}>
+                                <Mail size={20} color={focusedInput === 'email' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="ornek@email.com"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                    autoComplete="email"
+                                    onFocus={() => setFocusedInput('email')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                            </View>
                         </View>
 
                         {/* Password Input */}
-                        <View style={styles.inputContainer}>
-                            <Lock size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Şifre (min. 6 karakter)"
-                                placeholderTextColor={colors.textMuted}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                                autoComplete="new-password"
-                            />
-                            <Pressable
-                                style={styles.eyeButton}
-                                onPress={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? (
-                                    <EyeOff size={20} color={colors.textMuted} />
-                                ) : (
-                                    <Eye size={20} color={colors.textMuted} />
-                                )}
-                            </Pressable>
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                ŞİFRE
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'password' && styles.inputFocused
+                            ]}>
+                                <Lock size={20} color={focusedInput === 'password' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="En az 6 karakter"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry={!showPassword}
+                                    onFocus={() => setFocusedInput('password')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                                    {showPassword ? (
+                                        <EyeOff size={20} color={colors.textMuted} />
+                                    ) : (
+                                        <Eye size={20} color={colors.textMuted} />
+                                    )}
+                                </Pressable>
+                            </View>
+                            {password.length > 0 && (
+                                <View style={styles.passwordHint}>
+                                    <View style={[styles.hintDot, hasMinLength && styles.hintDotActive]} />
+                                    <Typography variant="caption" color={hasMinLength ? colors.success : colors.textMuted}>
+                                        En az 6 karakter
+                                    </Typography>
+                                </View>
+                            )}
                         </View>
 
                         {/* Confirm Password Input */}
-                        <View style={styles.inputContainer}>
-                            <Lock size={20} color={colors.textMuted} style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Şifreyi Onayla"
-                                placeholderTextColor={colors.textMuted}
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                secureTextEntry={!showPassword}
-                                autoComplete="new-password"
-                            />
+                        <View style={styles.inputGroup}>
+                            <Typography variant="label" color={colors.textSecondary}>
+                                ŞİFRE TEKRAR
+                            </Typography>
+                            <View style={[
+                                styles.inputContainer,
+                                focusedInput === 'confirm' && styles.inputFocused
+                            ]}>
+                                <Lock size={20} color={focusedInput === 'confirm' ? colors.primary : colors.textMuted} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Şifrenizi tekrarlayın"
+                                    placeholderTextColor={colors.textMuted}
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
+                                    secureTextEntry={!showPassword}
+                                    onFocus={() => setFocusedInput('confirm')}
+                                    onBlur={() => setFocusedInput(null)}
+                                />
+                                {passwordsMatch && (
+                                    <Check size={20} color={colors.success} />
+                                )}
+                            </View>
                         </View>
 
                         {/* Error Message */}
@@ -169,24 +214,29 @@ export const RegisterScreen: React.FC = () => {
                         )}
 
                         {/* Register Button */}
-                        <Button
-                            title={isLoading ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
-                            variant="primary"
-                            fullWidth
+                        <Pressable
+                            style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
                             onPress={handleRegister}
                             disabled={isLoading}
-                            loading={isLoading}
-                        />
-
-                        {/* Login Link */}
-                        <Pressable
-                            style={styles.loginLink}
-                            onPress={() => navigation.navigate('Login')}
                         >
-                            <Typography variant="body" color={colors.textSecondary}>
-                                Zaten hesabın var mı?{' '}
+                            <Typography variant="body" color={colors.textOnPrimary} style={{ fontWeight: '700' }}>
+                                {isLoading ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
                             </Typography>
-                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '600' }}>
+                        </Pressable>
+
+                        {/* Terms */}
+                        <Typography variant="caption" color={colors.textMuted} style={styles.terms}>
+                            Kayıt olarak Kullanım Koşulları ve Gizlilik Politikası'nı kabul etmiş olursunuz.
+                        </Typography>
+                    </View>
+
+                    {/* Login Link */}
+                    <View style={styles.loginContainer}>
+                        <Typography variant="body" color={colors.textSecondary}>
+                            Zaten hesabın var mı?{' '}
+                        </Typography>
+                        <Pressable onPress={() => navigation.goBack()}>
+                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '700' }}>
                                 Giriş Yap
                             </Typography>
                         </Pressable>
@@ -202,12 +252,9 @@ const createStyles = (colors: any) => StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
-    keyboardView: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        padding: layout.screenPaddingHorizontal,
+    header: {
+        paddingHorizontal: layout.screenPaddingHorizontal,
+        paddingVertical: spacing[2],
     },
     backButton: {
         width: 44,
@@ -216,48 +263,66 @@ const createStyles = (colors: any) => StyleSheet.create({
         backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: spacing[4],
+        borderWidth: 1,
+        borderColor: colors.border,
     },
-    header: {
-        alignItems: 'center',
-        gap: spacing[3],
-        marginBottom: spacing[6],
+    keyboardView: {
+        flex: 1,
     },
-    logoContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: colors.primaryMuted,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: spacing[2],
+    scrollContent: {
+        flexGrow: 1,
+        padding: layout.screenPaddingHorizontal,
     },
-    form: {
+    titleContainer: {
+        gap: spacing[1],
+        marginBottom: spacing[5],
+    },
+    formCard: {
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusLarge,
+        padding: spacing[5],
         gap: spacing[4],
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    inputGroup: {
+        gap: spacing[2],
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.surface,
+        backgroundColor: colors.background,
         borderRadius: layout.radiusMedium,
         borderWidth: 1,
         borderColor: colors.border,
-        paddingHorizontal: spacing[4],
+        paddingHorizontal: spacing[3],
+        gap: spacing[3],
     },
-    inputIcon: {
-        marginRight: spacing[3],
+    inputFocused: {
+        borderColor: colors.primary,
     },
     input: {
         flex: 1,
-        paddingVertical: spacing[4],
+        paddingVertical: spacing[3],
         fontSize: 16,
         color: colors.textPrimary,
         ...Platform.select({
             web: { outlineStyle: 'none' } as any,
         }),
     },
-    eyeButton: {
-        padding: spacing[2],
+    passwordHint: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
+    },
+    hintDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: colors.border,
+    },
+    hintDotActive: {
+        backgroundColor: colors.success,
     },
     errorContainer: {
         backgroundColor: colors.error + '15',
@@ -266,9 +331,23 @@ const createStyles = (colors: any) => StyleSheet.create({
         borderWidth: 1,
         borderColor: colors.error + '30',
     },
-    loginLink: {
+    primaryButton: {
+        backgroundColor: colors.primary,
+        borderRadius: layout.radiusMedium,
+        paddingVertical: spacing[4],
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonDisabled: {
+        opacity: 0.6,
+    },
+    terms: {
+        textAlign: 'center',
+        lineHeight: 18,
+    },
+    loginContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        paddingVertical: spacing[2],
+        paddingVertical: spacing[5],
     },
 });

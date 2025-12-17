@@ -1,19 +1,18 @@
-// FitLog - Onboarding Store
+// FitLog - Onboarding Store (Web Compatible)
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 
 export type TrainingStyle =
-    | 'strength' // Güç antrenmanı
-    | 'hypertrophy' // Kas büyütme
-    | 'endurance' // Dayanıklılık
-    | 'weight_loss' // Kilo verme
-    | 'general_fitness'; // Genel fitness
+    | 'strength'
+    | 'hypertrophy'
+    | 'endurance'
+    | 'weight_loss'
+    | 'general_fitness';
 
 export interface OnboardingData {
     trainingStyle: TrainingStyle | null;
     fitnessLevel: 'beginner' | 'intermediate' | 'advanced' | null;
-    weeklyAvailability: number; // days per week
+    weeklyAvailability: number;
     hasEquipment: boolean;
     goals: string[];
 }
@@ -42,6 +41,38 @@ const defaultOnboardingData: OnboardingData = {
     weeklyAvailability: 4,
     hasEquipment: true,
     goals: [],
+};
+
+// Custom storage that works on both web and native
+const customStorage: StateStorage = {
+    getItem: (name: string): string | null => {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                return localStorage.getItem(name);
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    },
+    setItem: (name: string, value: string): void => {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem(name, value);
+            }
+        } catch {
+            // Ignore errors
+        }
+    },
+    removeItem: (name: string): void => {
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.removeItem(name);
+            }
+        } catch {
+            // Ignore errors
+        }
+    },
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -115,7 +146,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         }),
         {
             name: 'fitlog-onboarding',
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => customStorage),
         }
     )
 );
