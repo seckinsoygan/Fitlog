@@ -56,6 +56,7 @@ interface WorkoutHistoryState {
     getRecentWorkouts: (limit?: number) => WorkoutRecord[];
     getExerciseHistory: (exerciseId: string) => CompletedExercise[];
     getWorkoutsForDateRange: (startDate: Date, endDate: Date) => WorkoutRecord[];
+    resetAllProgress: () => Promise<void>;
 }
 
 export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => ({
@@ -286,5 +287,47 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
                 : new Date(workout.createdAt);
             return workoutDate >= startDate && workoutDate <= endDate;
         });
+    },
+
+    resetAllProgress: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) {
+            console.error('User not logged in');
+            return;
+        }
+
+        set({ isLoading: true, error: null });
+
+        try {
+            // Delete all workouts from Firestore
+            const snapshot = await db.collection('workouts')
+                .where('userId', '==', user.uid)
+                .get();
+
+            const batch = db.batch();
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            // Reset local state
+            set({
+                workoutHistory: [],
+                stats: {
+                    totalWorkouts: 0,
+                    thisWeekWorkouts: 0,
+                    thisMonthWorkouts: 0,
+                    totalVolume: 0,
+                    averageDuration: 0,
+                    personalRecords: {},
+                },
+                isLoading: false,
+            });
+
+            console.log('✅ All progress reset successfully');
+        } catch (error: any) {
+            console.error('❌ Error resetting progress:', error);
+            set({ isLoading: false, error: 'İlerleme sıfırlanamadı' });
+        }
     },
 }));

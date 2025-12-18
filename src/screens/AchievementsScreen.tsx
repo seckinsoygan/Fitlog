@@ -1,5 +1,5 @@
 // FitLog - Achievements Screen
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
     View,
     StyleSheet,
@@ -16,11 +16,37 @@ import { useThemeStore, useAchievementsStore, useWorkoutHistoryStore } from '../
 export const AchievementsScreen: React.FC = () => {
     const navigation = useNavigation();
     const colors = useThemeStore((state) => state.colors);
-    const { achievements, totalPoints, getUnlockedAchievements, getLockedAchievements } = useAchievementsStore();
-    const { stats } = useWorkoutHistoryStore();
+    const { achievements, totalPoints, getUnlockedAchievements, getLockedAchievements, checkAchievements } = useAchievementsStore();
+    const { stats, getWorkoutStats } = useWorkoutHistoryStore();
+
+    // Check achievements when screen loads
+    useEffect(() => {
+        console.log('🏆 AchievementsScreen: Checking achievements with stats:', stats);
+        getWorkoutStats(); // Refresh stats first
+        checkAchievements({
+            totalWorkouts: stats.totalWorkouts,
+            totalVolume: stats.totalVolume,
+            streak: 0, // TODO: Calculate streak
+            thisWeekWorkouts: stats.thisWeekWorkouts,
+        });
+    }, []);
+
+    // Also check when stats change
+    useEffect(() => {
+        if (stats.totalWorkouts > 0) {
+            console.log('🏆 Stats changed, rechecking achievements:', stats);
+            checkAchievements({
+                totalWorkouts: stats.totalWorkouts,
+                totalVolume: stats.totalVolume,
+                streak: 0,
+                thisWeekWorkouts: stats.thisWeekWorkouts,
+            });
+        }
+    }, [stats.totalWorkouts, stats.totalVolume]);
 
     const unlockedAchievements = getUnlockedAchievements();
     const lockedAchievements = getLockedAchievements();
+
 
     const getCategoryIcon = (category: string) => {
         switch (category) {

@@ -347,6 +347,40 @@ export const SettingsScreen: React.FC = () => {
                     </View>
                 </View>
 
+                {/* Data Management */}
+                <View style={styles.section}>
+                    <Typography variant="label" style={styles.sectionLabel}>
+                        VERİ YÖNETİMİ
+                    </Typography>
+
+                    <View style={styles.settingsGroup}>
+                        <SettingItem
+                            icon={<Target size={20} color={colors.error} />}
+                            title="Antrenman Geçmişini Sıfırla"
+                            subtitle="Tüm antrenman kayıtlarını sil"
+                            onPress={() => {
+                                showAlert(
+                                    'İlerleme Sıfırla',
+                                    'Tüm antrenman geçmişiniz ve istatistikleriniz silinecek. Bu işlem geri alınamaz.',
+                                    [
+                                        { text: 'İptal', style: 'cancel' },
+                                        {
+                                            text: 'Sıfırla',
+                                            style: 'destructive',
+                                            onPress: async () => {
+                                                const { resetAllProgress } = await import('../store/workoutHistoryStore').then(m => m.useWorkoutHistoryStore.getState());
+                                                await resetAllProgress();
+                                                showAlert('Başarılı', 'Antrenman geçmişiniz sıfırlandı.');
+                                            }
+                                        },
+                                    ]
+                                );
+                            }}
+                            colors={colors}
+                        />
+                    </View>
+                </View>
+
                 {/* Logout Section */}
                 <View style={styles.section}>
                     <View style={styles.settingsGroup}>

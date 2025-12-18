@@ -328,6 +328,18 @@ export const AppNavigator: React.FC = () => {
                     console.log('✅ Achievements loaded from Firebase');
                 });
             });
+
+            // Load onboarding data (to remember training style selection)
+            import('../services/firestoreSync').then(({ loadUserData }) => {
+                loadUserData().then((userData) => {
+                    if (userData?.onboarding?.hasSelectedTrainingStyle) {
+                        import('../store/onboardingStore').then(({ useOnboardingStore }) => {
+                            useOnboardingStore.getState().completeTrainingStyleSelection();
+                            console.log('✅ Onboarding state restored from Firebase');
+                        });
+                    }
+                });
+            });
         }
     }, [user, isInitialized]);
 
