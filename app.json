@@ -1,45 +1,56 @@
 {
-    "expo": {
-        "name": "FitLog",
-        "slug": "fitlog-app",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "scheme": "fitlog",
-        "splash": {
-            "image": "./assets/splash-icon.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#09090B"
-        },
-        "ios": {
-            "supportsTablet": true,
-            "bundleIdentifier": "com.fitlog.app"
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#09090B"
-            },
-            "edgeToEdgeEnabled": true,
-            "package": "com.fitlog.app"
-        },
-        "web": {
-            "favicon": "./assets/favicon.png",
-            "bundler": "metro",
-            "name": "FitLog",
-            "shortName": "FitLog",
-            "description": "Your personal fitness tracking companion",
-            "backgroundColor": "#09090B",
-            "themeColor": "#D4FF00",
-            "display": "standalone",
-            "orientation": "portrait",
-            "startUrl": "/",
-            "scope": "/"
-        },
-        "plugins": [
-            "expo-sqlite"
-        ]
-    }
+  "expo": {
+    "name": "FitLog",
+    "slug": "fitlog-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "fitlog",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#09090B"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitlog.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#09090B"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.seckinsoygan.fitlog",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "name": "FitLog",
+      "shortName": "FitLog",
+      "description": "Your personal fitness tracking companion",
+      "backgroundColor": "#09090B",
+      "themeColor": "#D4FF00",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "scope": "/"
+    },
+    "plugins": [
+      "expo-sqlite"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a663ab9d-f85d-4e7d-b8f9-67cf4f32ad14"
+      }
+    },
+    "owner": "seckinsoygan"
+  }
 }
