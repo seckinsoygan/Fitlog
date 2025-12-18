@@ -320,6 +320,14 @@ export const AppNavigator: React.FC = () => {
                     console.log('✅ Water data loaded from Firebase');
                 });
             });
+
+            // Load achievements data
+            import('../store/achievementsStore').then(({ useAchievementsStore }) => {
+                const { loadFromFirestore } = useAchievementsStore.getState();
+                loadFromFirestore().then(() => {
+                    console.log('✅ Achievements loaded from Firebase');
+                });
+            });
         }
     }, [user, isInitialized]);
 
