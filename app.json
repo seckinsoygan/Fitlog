@@ -27,7 +27,16 @@
         },
         "web": {
             "favicon": "./assets/favicon.png",
-            "bundler": "metro"
+            "bundler": "metro",
+            "name": "FitLog",
+            "shortName": "FitLog",
+            "description": "Your personal fitness tracking companion",
+            "backgroundColor": "#09090B",
+            "themeColor": "#D4FF00",
+            "display": "standalone",
+            "orientation": "portrait",
+            "startUrl": "/",
+            "scope": "/"
         },
         "plugins": [
             "expo-sqlite"
