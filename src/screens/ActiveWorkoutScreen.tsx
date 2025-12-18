@@ -233,8 +233,10 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 {/* Rest Timer */}
                 {showRestTimer && (
                     <RestTimer
-                        initialSeconds={90}
+                        isVisible={showRestTimer}
+                        onClose={handleRestComplete}
                         onComplete={handleRestComplete}
+                        initialTime={90}
                         autoStart={true}
                     />
                 )}

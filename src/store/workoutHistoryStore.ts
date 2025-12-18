@@ -50,10 +50,12 @@ interface WorkoutHistoryState {
     error: string | null;
 
     saveWorkout: (workout: Omit<WorkoutRecord, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
+    deleteWorkout: (workoutId: string) => Promise<void>;
     loadWorkoutHistory: () => Promise<void>;
     getWorkoutStats: () => WorkoutStats;
     getRecentWorkouts: (limit?: number) => WorkoutRecord[];
     getExerciseHistory: (exerciseId: string) => CompletedExercise[];
+    getWorkoutsForDateRange: (startDate: Date, endDate: Date) => WorkoutRecord[];
 }
 
 export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => ({
@@ -119,6 +121,33 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
         } catch (error: any) {
             console.error('❌ Error saving workout:', error);
             set({ isLoading: false, error: 'Antrenman kaydedilemedi' });
+        }
+    },
+
+    deleteWorkout: async (workoutId: string) => {
+        const user = useAuthStore.getState().user;
+        if (!user) {
+            console.error('User not logged in');
+            return;
+        }
+
+        set({ isLoading: true, error: null });
+
+        try {
+            // Delete from Firestore
+            await db.collection('workouts').doc(workoutId).delete();
+
+            // Remove from local state
+            set((state) => ({
+                workoutHistory: state.workoutHistory.filter(w => w.id !== workoutId),
+                isLoading: false,
+            }));
+
+            get().getWorkoutStats();
+            console.log('✅ Workout deleted successfully:', workoutId);
+        } catch (error: any) {
+            console.error('❌ Error deleting workout:', error);
+            set({ isLoading: false, error: 'Antrenman silinemedi' });
         }
     },
 
@@ -245,5 +274,15 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
             });
         });
         return history;
+    },
+
+    getWorkoutsForDateRange: (startDate: Date, endDate: Date) => {
+        const { workoutHistory } = get();
+        return workoutHistory.filter((workout) => {
+            const workoutDate = workout.createdAt instanceof Date
+                ? workout.createdAt
+                : new Date(workout.createdAt);
+            return workoutDate >= startDate && workoutDate <= endDate;
+        });
     },
 }));

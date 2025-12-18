@@ -127,12 +127,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         padding: 0,
         margin: 0,
-        ...Platform.select({
-            web: {
-                outlineStyle: 'none',
-                outlineWidth: 0,
-            },
-        }),
     },
     unit: {
         marginLeft: spacing[1],

@@ -1,55 +1,128 @@
-// FitLog - Dashboard Screen with Dynamic Theme & Enhanced UI
-import React, { useMemo, useEffect } from 'react';
+// FitLog - Dashboard Screen with Weekly Program Editor Modal
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import {
     View,
     StyleSheet,
     ScrollView,
     Pressable,
     Platform,
+    Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Play,
     Flame,
     Trophy,
-    TrendingUp,
     Calendar,
     Dumbbell,
-    Clock,
     ChevronRight,
     Zap,
+    X,
+    Clock,
+    GripVertical,
+    Moon,
+    Edit3,
+    ArrowLeftRight,
     Droplets,
     Award,
 } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
-import { Typography } from '../components/atoms';
-import { useThemeStore, useUserStore, useWeeklyProgramStore, useNutritionStore, useWaterStore, useAchievementsStore, useWorkoutHistoryStore } from '../store';
+import { Typography, H2, Button } from '../components/atoms';
+import { useThemeStore, useUserStore, useWeeklyProgramStore, useNutritionStore, useWorkoutHistoryStore } from '../store';
+import { useWaterStore } from '../store/waterStore';
+import { useAchievementsStore } from '../store/achievementsStore';
+
+// Web-specific draggable wrapper for program editor
+const WebDraggableDay: React.FC<{
+    children: React.ReactNode;
+    dayIndex: number;
+    onDragStart: (dayIndex: number) => void;
+    onDragEnd: () => void;
+    onDragOver: (dayIndex: number) => void;
+    onDrop: (dayIndex: number) => void;
+    style?: any;
+}> = ({ children, dayIndex, onDragStart, onDragEnd, onDragOver, onDrop, style }) => {
+    const ref = useRef<any>(null);
+
+    useEffect(() => {
+        if (Platform.OS !== 'web' || !ref.current) return;
+
+        const element = ref.current;
+
+        const handleDragStart = (e: DragEvent) => {
+            e.dataTransfer!.effectAllowed = 'move';
+            e.dataTransfer!.setData('text/plain', dayIndex.toString());
+            onDragStart(dayIndex);
+            setTimeout(() => {
+                if (element) element.style.opacity = '0.5';
+            }, 0);
+        };
+
+        const handleDragEnd = () => {
+            if (element) element.style.opacity = '1';
+            onDragEnd();
+        };
+
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault();
+            e.dataTransfer!.dropEffect = 'move';
+            onDragOver(dayIndex);
+        };
+
+        const handleDrop = (e: DragEvent) => {
+            e.preventDefault();
+            onDrop(dayIndex);
+        };
+
+        element.setAttribute('draggable', 'true');
+        element.addEventListener('dragstart', handleDragStart);
+        element.addEventListener('dragend', handleDragEnd);
+        element.addEventListener('dragover', handleDragOver);
+        element.addEventListener('drop', handleDrop);
+
+        return () => {
+            element.removeEventListener('dragstart', handleDragStart);
+            element.removeEventListener('dragend', handleDragEnd);
+            element.removeEventListener('dragover', handleDragOver);
+            element.removeEventListener('drop', handleDrop);
+        };
+    }, [dayIndex, onDragStart, onDragEnd, onDragOver, onDrop]);
+
+    return (
+        <View ref={ref} style={style}>
+            {children}
+        </View>
+    );
+};
 
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
     const { profile, templates } = useUserStore();
-    const { getTodaysWorkout, activeProgram } = useWeeklyProgramStore();
+    const { getTodaysWorkout, activeProgram, assignTemplateToDay, swapDays } = useWeeklyProgramStore();
     const { getTodayNutrition, goals } = useNutritionStore();
-    const { getTodayProgress, getTodayRecord, dailyGoal, glassSize, addWater, records } = useWaterStore();
-    const { getUnlockedAchievements, totalPoints, checkAchievements } = useAchievementsStore();
-    const { stats, getWorkoutStats, loadWorkoutHistory, workoutHistory } = useWorkoutHistoryStore();
+    const { stats, getWorkoutStats, getWorkoutsForDateRange } = useWorkoutHistoryStore();
+    const { getTodayProgress, getTodayRecord, dailyGoal, addWater } = useWaterStore();
+    const { getUnlockedAchievements, totalPoints } = useAchievementsStore();
+
+    // State for modals
+    const [showDayHistoryModal, setShowDayHistoryModal] = useState(false);
+    const [showProgramEditorModal, setShowProgramEditorModal] = useState(false);
+    const [showTemplatePickerModal, setShowTemplatePickerModal] = useState(false);
+    const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+    const [selectedDayWorkouts, setSelectedDayWorkouts] = useState<any[]>([]);
+
+    // Drag & drop state
+    const [draggingDay, setDraggingDay] = useState<number | null>(null);
+    const [dragOverDay, setDragOverDay] = useState<number | null>(null);
 
     // Refresh data when screen comes into focus
     useFocusEffect(
         React.useCallback(() => {
             console.log('📊 Dashboard: Refreshing data...');
-            // Refresh workout stats
             getWorkoutStats();
-            // Check achievements based on current stats
-            checkAchievements({
-                totalWorkouts: stats.totalWorkouts,
-                totalVolume: stats.totalVolume,
-                streak: 0, // TODO: Calculate streak
-                thisWeekWorkouts: stats.thisWeekWorkouts,
-            });
-        }, [stats.totalWorkouts, stats.totalVolume])
+        }, [])
     );
 
     const todaysWorkout = getTodaysWorkout();
@@ -58,12 +131,10 @@ export const DashboardScreen: React.FC = () => {
         ? templates.find(t => t.id === todaysWorkout.templateId)
         : null;
 
+    const thisWeekWorkouts = stats.thisWeekWorkouts;
     const waterProgress = getTodayProgress();
     const waterRecord = getTodayRecord();
     const unlockedBadges = getUnlockedAchievements();
-
-    // Use stats from workoutHistoryStore for weekly count
-    const thisWeekWorkouts = stats.thisWeekWorkouts;
 
     const greeting = useMemo(() => {
         const hour = new Date().getHours();
@@ -77,6 +148,81 @@ export const DashboardScreen: React.FC = () => {
 
     const handleStartWorkout = (templateId?: string) => {
         navigation.navigate('ActiveWorkout', { templateId });
+    };
+
+    // Handle day press in weekly view - show history
+    const handleDayPress = (dayIndex: number) => {
+        const now = new Date();
+        const currentDay = now.getDay();
+        const diff = dayIndex - currentDay;
+        const selectedDate = new Date(now);
+        selectedDate.setDate(now.getDate() + diff);
+
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const dayWorkouts = getWorkoutsForDateRange(startOfDay, endOfDay);
+
+        setSelectedDayIndex(dayIndex);
+        setSelectedDayWorkouts(dayWorkouts);
+        setShowDayHistoryModal(true);
+    };
+
+    // Handle "Bu Hafta" header press - show program editor
+    const handleWeekHeaderPress = () => {
+        setShowProgramEditorModal(true);
+    };
+
+    // Handle day press in program editor - show template picker
+    const handleEditDayPress = (dayIndex: number) => {
+        setSelectedDayIndex(dayIndex);
+        setShowTemplatePickerModal(true);
+    };
+
+    // Handle template selection
+    const handleTemplateSelect = (templateId: string | null, templateName: string | null) => {
+        if (selectedDayIndex !== null && activeProgram) {
+            assignTemplateToDay(activeProgram.id, selectedDayIndex, templateId, templateName);
+        }
+        setShowTemplatePickerModal(false);
+        setSelectedDayIndex(null);
+    };
+
+    // Drag & drop handlers
+    const handleDragStart = (dayIndex: number) => {
+        setDraggingDay(dayIndex);
+    };
+
+    const handleDragEnd = () => {
+        setDraggingDay(null);
+        setDragOverDay(null);
+    };
+
+    const handleDragOver = (dayIndex: number) => {
+        if (draggingDay !== null && draggingDay !== dayIndex) {
+            setDragOverDay(dayIndex);
+        }
+    };
+
+    const handleDrop = (targetDayIndex: number) => {
+        if (draggingDay !== null && activeProgram && draggingDay !== targetDayIndex) {
+            swapDays(activeProgram.id, draggingDay, targetDayIndex);
+        }
+        setDraggingDay(null);
+        setDragOverDay(null);
+    };
+
+    const getDayName = (index: number) => {
+        const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+        return dayNames[index];
+    };
+
+    const formatDuration = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        return `${mins} dk`;
     };
 
     const styles = createStyles(colors);
@@ -161,7 +307,7 @@ export const DashboardScreen: React.FC = () => {
                     {/* Exercise Preview */}
                     {todayTemplate && (
                         <View style={styles.exercisePreview}>
-                            {todayTemplate.exercises.slice(0, 3).map((exercise, index) => (
+                            {todayTemplate.exercises.slice(0, 3).map((exercise) => (
                                 <View key={exercise.id} style={styles.previewItem}>
                                     <View style={styles.previewDot} />
                                     <Typography variant="caption" numberOfLines={1}>
@@ -180,7 +326,6 @@ export const DashboardScreen: React.FC = () => {
 
                 {/* Quick Stats Row */}
                 <View style={styles.statsRow}>
-                    {/* Calorie Card */}
                     <Pressable
                         style={styles.statCard}
                         onPress={() => navigation.navigate('Nutrition')}
@@ -199,10 +344,9 @@ export const DashboardScreen: React.FC = () => {
                         </View>
                     </Pressable>
 
-                    {/* Weekly Goal Card */}
                     <Pressable
                         style={styles.statCard}
-                        onPress={() => navigation.navigate('Progress')}
+                        onPress={() => navigation.navigate('History')}
                     >
                         <View style={[styles.statIcon, { backgroundColor: colors.success + '20' }]}>
                             <Trophy size={20} color={colors.success} />
@@ -255,13 +399,12 @@ export const DashboardScreen: React.FC = () => {
                             </Typography>
                         </View>
                         <View style={styles.badgeRow}>
-                            {unlockedBadges.slice(0, 3).map((badge, i) => (
+                            {unlockedBadges.slice(0, 3).map((badge) => (
                                 <Typography key={badge.id} variant="caption">{badge.emoji}</Typography>
                             ))}
                         </View>
                     </Pressable>
                 </View>
-
                 {/* Quick Start Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
@@ -278,7 +421,6 @@ export const DashboardScreen: React.FC = () => {
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.templatesScroll}
                     >
-                        {/* Empty Workout */}
                         <Pressable
                             style={styles.templateCard}
                             onPress={() => handleStartWorkout()}
@@ -310,26 +452,42 @@ export const DashboardScreen: React.FC = () => {
                     </ScrollView>
                 </View>
 
-                {/* Weekly Overview */}
+                {/* Weekly Overview - Clickable Header to Edit Program */}
                 <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Typography variant="h3">Bu Hafta</Typography>
-                        <Pressable onPress={() => navigation.navigate('Program')}>
-                            <ChevronRight size={20} color={colors.textMuted} />
-                        </Pressable>
-                    </View>
+                    <Pressable style={styles.sectionHeaderClickable} onPress={handleWeekHeaderPress}>
+                        <View style={styles.sectionHeaderLeft}>
+                            <Typography variant="h3">Bu Hafta</Typography>
+                            <View style={styles.editBadge}>
+                                <Edit3 size={12} color={colors.primary} />
+                                <Typography variant="caption" color={colors.primary}>Düzenle</Typography>
+                            </View>
+                        </View>
+                        <ChevronRight size={20} color={colors.textMuted} />
+                    </Pressable>
 
                     <View style={styles.weekGrid}>
                         {activeProgram?.days.map((day) => {
                             const isToday = day.dayIndex === new Date().getDay();
+                            const now = new Date();
+                            const currentDay = now.getDay();
+                            const diff = day.dayIndex - currentDay;
+                            const dayDate = new Date(now);
+                            dayDate.setDate(now.getDate() + diff);
+                            dayDate.setHours(0, 0, 0, 0);
+                            const endDate = new Date(dayDate);
+                            endDate.setHours(23, 59, 59, 999);
+                            const dayWorkouts = getWorkoutsForDateRange(dayDate, endDate);
+                            const hasWorkout = dayWorkouts.length > 0;
+
                             return (
-                                <View
+                                <Pressable
                                     key={day.dayIndex}
                                     style={[
                                         styles.dayCell,
                                         isToday && styles.dayCellToday,
                                         day.isRestDay && styles.dayCellRest,
                                     ]}
+                                    onPress={() => handleDayPress(day.dayIndex)}
                                 >
                                     <Typography
                                         variant="caption"
@@ -337,16 +495,278 @@ export const DashboardScreen: React.FC = () => {
                                     >
                                         {day.dayName.slice(0, 3)}
                                     </Typography>
-                                    {!day.isRestDay && day.templateName && (
+                                    {hasWorkout ? (
+                                        <View style={[styles.dayDotCompleted, isToday && styles.dayDotToday]} />
+                                    ) : !day.isRestDay && day.templateName ? (
                                         <View style={[styles.dayDot, isToday && styles.dayDotToday]} />
-                                    )}
-                                </View>
+                                    ) : null}
+                                </Pressable>
                             );
                         })}
                     </View>
+                    <Typography variant="caption" color={colors.textMuted} style={{ textAlign: 'center', marginTop: spacing[2] }}>
+                        💡 Günlere tıklayarak geçmişi, başlığa tıklayarak programı düzenleyin
+                    </Typography>
                 </View>
 
             </ScrollView>
+
+            {/* Day History Modal */}
+            <Modal visible={showDayHistoryModal} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} Antrenmanları</H2>
+                            <Pressable onPress={() => setShowDayHistoryModal(false)}>
+                                <X size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView style={styles.modalScroll}>
+                            {selectedDayWorkouts.length > 0 ? (
+                                selectedDayWorkouts.map((workout, index) => {
+                                    const workoutDate = workout.createdAt instanceof Date
+                                        ? workout.createdAt
+                                        : new Date(workout.createdAt || Date.now());
+                                    return (
+                                        <View key={workout.id || index} style={styles.historyItem}>
+                                            <View style={styles.historyIcon}>
+                                                <Dumbbell size={20} color={colors.primary} />
+                                            </View>
+                                            <View style={styles.historyInfo}>
+                                                <Typography variant="body">
+                                                    {workout.templateName || 'Antrenman'}
+                                                </Typography>
+                                                <Typography variant="caption" color={colors.textMuted}>
+                                                    {workoutDate.toLocaleDateString('tr-TR', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                    })}
+                                                </Typography>
+                                            </View>
+                                            <View style={styles.historyStats}>
+                                                <View style={styles.historyStat}>
+                                                    <Clock size={12} color={colors.textMuted} />
+                                                    <Typography variant="caption" color={colors.textMuted}>
+                                                        {formatDuration(workout.duration || 0)}
+                                                    </Typography>
+                                                </View>
+                                                <Typography variant="caption" color={colors.textSecondary}>
+                                                    {workout.totalSets || 0} set
+                                                </Typography>
+                                            </View>
+                                        </View>
+                                    );
+                                })
+                            ) : (
+                                <View style={styles.emptyHistory}>
+                                    <Calendar size={48} color={colors.textMuted} />
+                                    <Typography variant="body" color={colors.textMuted}>
+                                        Bu gün antrenman yapılmamış
+                                    </Typography>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Program Editor Modal - with Drag & Drop */}
+            <Modal visible={showProgramEditorModal} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+                        <View style={styles.modalHeader}>
+                            <View>
+                                <H2>Haftalık Program</H2>
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    {activeProgram?.name || 'Program'}
+                                </Typography>
+                            </View>
+                            <Pressable onPress={() => setShowProgramEditorModal(false)}>
+                                <X size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        {/* Drag & Drop Hint */}
+                        <View style={styles.dragHint}>
+                            <ArrowLeftRight size={16} color={colors.info} />
+                            <Typography variant="caption" color={colors.textSecondary}>
+                                Sürükleyerek günleri değiştirin, tıklayarak program atayın
+                            </Typography>
+                        </View>
+
+                        <ScrollView style={styles.modalScroll}>
+                            {activeProgram?.days.map((day) => {
+                                const isToday = day.dayIndex === new Date().getDay();
+                                const template = day.templateId
+                                    ? templates.find(t => t.id === day.templateId)
+                                    : null;
+                                const isDragging = draggingDay === day.dayIndex;
+                                const isDragOver = dragOverDay === day.dayIndex;
+
+                                const dayCard = (
+                                    <View
+                                        style={[
+                                            styles.programDayCard,
+                                            isToday && styles.programDayCardToday,
+                                            isDragOver && styles.programDayCardDragOver,
+                                        ]}
+                                    >
+                                        {/* Drag Handle */}
+                                        <View style={styles.dragHandle}>
+                                            <GripVertical size={18} color={colors.textMuted} />
+                                        </View>
+
+                                        {/* Day Info */}
+                                        <Pressable
+                                            style={styles.programDayContent}
+                                            onPress={() => handleEditDayPress(day.dayIndex)}
+                                        >
+                                            <View style={styles.programDayHeader}>
+                                                <Typography
+                                                    variant="body"
+                                                    color={isToday ? colors.primary : colors.textPrimary}
+                                                    style={{ fontWeight: '600' }}
+                                                >
+                                                    {day.dayName}
+                                                </Typography>
+                                                {isToday && (
+                                                    <View style={styles.todayBadgeSmall}>
+                                                        <Typography variant="caption" color={colors.textOnPrimary}>
+                                                            BUGÜN
+                                                        </Typography>
+                                                    </View>
+                                                )}
+                                            </View>
+
+                                            <View style={styles.programDayWorkout}>
+                                                {day.isRestDay ? (
+                                                    <View style={styles.restDayContent}>
+                                                        <Moon size={16} color={colors.textMuted} />
+                                                        <Typography variant="bodySmall" color={colors.textMuted}>
+                                                            Dinlenme Günü
+                                                        </Typography>
+                                                    </View>
+                                                ) : template ? (
+                                                    <View style={styles.workoutDayContent}>
+                                                        <View style={[styles.workoutIconSmall, { backgroundColor: (template.color || colors.primary) + '20' }]}>
+                                                            <Dumbbell size={14} color={template.color || colors.primary} />
+                                                        </View>
+                                                        <View style={{ flex: 1 }}>
+                                                            <Typography variant="body" numberOfLines={1}>{template.name}</Typography>
+                                                            <Typography variant="caption" color={colors.textMuted}>
+                                                                {template.exercises.length} hareket
+                                                            </Typography>
+                                                        </View>
+                                                    </View>
+                                                ) : (
+                                                    <View style={styles.emptyDayContent}>
+                                                        <Typography variant="bodySmall" color={colors.textMuted}>
+                                                            Program atanmadı - tıkla ekle
+                                                        </Typography>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </Pressable>
+
+                                        {/* Edit Icon */}
+                                        <Pressable
+                                            style={styles.editButton}
+                                            onPress={() => handleEditDayPress(day.dayIndex)}
+                                        >
+                                            <Edit3 size={16} color={colors.textSecondary} />
+                                        </Pressable>
+                                    </View>
+                                );
+
+                                // Wrap with draggable for web
+                                if (Platform.OS === 'web') {
+                                    return (
+                                        <WebDraggableDay
+                                            key={day.dayIndex}
+                                            dayIndex={day.dayIndex}
+                                            onDragStart={handleDragStart}
+                                            onDragEnd={handleDragEnd}
+                                            onDragOver={handleDragOver}
+                                            onDrop={handleDrop}
+                                            style={{ marginBottom: spacing[2] }}
+                                        >
+                                            {dayCard}
+                                        </WebDraggableDay>
+                                    );
+                                }
+
+                                return (
+                                    <View key={day.dayIndex} style={{ marginBottom: spacing[2] }}>
+                                        {dayCard}
+                                    </View>
+                                );
+                            })}
+                        </ScrollView>
+
+                        <View style={styles.modalFooter}>
+                            <Button
+                                title="Tamam"
+                                variant="primary"
+                                fullWidth
+                                onPress={() => setShowProgramEditorModal(false)}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Template Picker Modal */}
+            <Modal visible={showTemplatePickerModal} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.templatePickerContent}>
+                        <View style={styles.modalHeader}>
+                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} için Program</H2>
+                            <Pressable onPress={() => setShowTemplatePickerModal(false)}>
+                                <X size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView style={styles.modalScroll}>
+                            {/* Rest Day Option */}
+                            <Pressable
+                                style={styles.templateOption}
+                                onPress={() => handleTemplateSelect(null, null)}
+                            >
+                                <View style={[styles.templateOptionIcon, { backgroundColor: colors.surfaceLight }]}>
+                                    <Moon size={20} color={colors.textMuted} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="body">Dinlenme Günü</Typography>
+                                    <Typography variant="caption" color={colors.textMuted}>
+                                        Bu gün antrenman yok
+                                    </Typography>
+                                </View>
+                            </Pressable>
+
+                            {/* Templates */}
+                            {templates.map((template) => (
+                                <Pressable
+                                    key={template.id}
+                                    style={styles.templateOption}
+                                    onPress={() => handleTemplateSelect(template.id, template.name)}
+                                >
+                                    <View style={[styles.templateOptionIcon, { backgroundColor: (template.color || colors.primary) + '20' }]}>
+                                        <Dumbbell size={20} color={template.color || colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Typography variant="body">{template.name}</Typography>
+                                        <Typography variant="caption" color={colors.textMuted}>
+                                            {template.exercises.length} hareket • ~{template.estimatedDuration || 60} dk
+                                        </Typography>
+                                    </View>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -493,6 +913,33 @@ const createStyles = (colors: any) => StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    sectionHeaderClickable: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        padding: spacing[3],
+        borderWidth: 1,
+        borderColor: colors.border,
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
+    },
+    sectionHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
+    },
+    editBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primaryMuted,
+        paddingHorizontal: spacing[2],
+        paddingVertical: spacing[1],
+        borderRadius: layout.radiusSmall,
+        gap: spacing[1],
+    },
     templatesScroll: {
         gap: spacing[3],
         paddingRight: spacing[4],
@@ -529,6 +976,9 @@ const createStyles = (colors: any) => StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing[3],
         gap: spacing[2],
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
     },
     dayCellToday: {
         backgroundColor: colors.primary,
@@ -542,11 +992,194 @@ const createStyles = (colors: any) => StyleSheet.create({
         borderRadius: 3,
         backgroundColor: colors.primary,
     },
+    dayDotCompleted: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: colors.success,
+    },
     dayDotToday: {
         backgroundColor: colors.textOnPrimary,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: colors.overlay,
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: colors.background,
+        borderTopLeftRadius: layout.radiusLarge,
+        borderTopRightRadius: layout.radiusLarge,
+        padding: layout.screenPaddingHorizontal,
+        maxHeight: '70%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingBottom: spacing[4],
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    modalScroll: {
+        marginTop: spacing[4],
+    },
+    modalFooter: {
+        paddingTop: spacing[4],
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+    },
+    historyItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        padding: spacing[4],
+        marginBottom: spacing[2],
+        gap: spacing[3],
+    },
+    historyIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: layout.radiusMedium,
+        backgroundColor: colors.primaryMuted,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    historyInfo: {
+        flex: 1,
+        gap: 2,
+    },
+    historyStats: {
+        alignItems: 'flex-end',
+        gap: spacing[1],
+    },
+    historyStat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[1],
+    },
+    emptyHistory: {
+        alignItems: 'center',
+        padding: spacing[8],
+        gap: spacing[3],
     },
     badgeRow: {
         flexDirection: 'row',
         gap: spacing[1],
+    },
+    // Program Editor Styles
+    dragHint: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.info + '15',
+        borderRadius: layout.radiusSmall,
+        padding: spacing[3],
+        marginTop: spacing[3],
+        gap: spacing[2],
+    },
+    programDayCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        borderWidth: 1,
+        borderColor: colors.border,
+        overflow: 'hidden',
+    },
+    programDayCardToday: {
+        borderColor: colors.primary,
+        borderWidth: 2,
+    },
+    programDayCardDragOver: {
+        borderColor: colors.info,
+        backgroundColor: colors.info + '10',
+        borderWidth: 2,
+        borderStyle: 'dashed',
+    },
+    dragHandle: {
+        padding: spacing[3],
+        borderRightWidth: 1,
+        borderRightColor: colors.border,
+        ...Platform.select({
+            web: { cursor: 'grab' } as any,
+        }),
+    },
+    programDayContent: {
+        flex: 1,
+        padding: spacing[3],
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
+    },
+    programDayHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
+        marginBottom: spacing[2],
+    },
+    todayBadgeSmall: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: spacing[2],
+        paddingVertical: 2,
+        borderRadius: layout.radiusSmall,
+    },
+    programDayWorkout: {},
+    restDayContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
+    },
+    workoutDayContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[3],
+    },
+    workoutIconSmall: {
+        width: 32,
+        height: 32,
+        borderRadius: layout.radiusSmall,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyDayContent: {
+        paddingVertical: spacing[1],
+    },
+    editButton: {
+        padding: spacing[3],
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
+    },
+    // Template Picker Styles
+    templatePickerContent: {
+        backgroundColor: colors.background,
+        borderTopLeftRadius: layout.radiusLarge,
+        borderTopRightRadius: layout.radiusLarge,
+        padding: layout.screenPaddingHorizontal,
+        maxHeight: '80%',
+        marginTop: 'auto',
+    },
+    templateOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        padding: spacing[4],
+        marginBottom: spacing[2],
+        gap: spacing[3],
+        borderWidth: 1,
+        borderColor: colors.border,
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
+    },
+    templateOptionIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: layout.radiusMedium,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

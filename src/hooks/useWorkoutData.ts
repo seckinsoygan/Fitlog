@@ -1,12 +1,13 @@
 // FitLog - Workout Data Hook
 import { useMemo, useCallback } from 'react';
-import { useWorkoutStore, useUserStore } from '../store';
+import { useWorkoutStore, useUserStore, useWeeklyProgramStore } from '../store';
 import { Workout, Exercise, Set } from '../types';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export const useWorkoutData = () => {
     const { templates, profile } = useUserStore();
+    const { getTodaysWorkout } = useWeeklyProgramStore();
     const {
         activeWorkout,
         isWorkoutActive,
@@ -23,11 +24,14 @@ export const useWorkoutData = () => {
         deleteSet,
     } = useWorkoutStore();
 
-    // Get today's template based on day of week
+    // Get today's template based on weekly program
     const todaysTemplate = useMemo(() => {
-        const today = new Date().getDay();
-        return templates.find((t) => t.dayOfWeek === today) || templates[0];
-    }, [templates]);
+        const todaysWorkout = getTodaysWorkout();
+        if (todaysWorkout?.templateId) {
+            return templates.find((t) => t.id === todaysWorkout.templateId) || null;
+        }
+        return templates.length > 0 ? templates[0] : null;
+    }, [templates, getTodaysWorkout]);
 
     // Convert template to workout
     const createWorkoutFromTemplate = useCallback(
@@ -38,9 +42,9 @@ export const useWorkoutData = () => {
             const exercises: Exercise[] = template.exercises.map((ex) => ({
                 id: generateId(),
                 name: ex.name,
-                muscleGroup: ex.muscleGroup,
+                muscleGroup: ex.muscleGroup || '',
                 isExpanded: true,
-                sets: Array.from({ length: ex.targetSets }, (_, i) => ({
+                sets: Array.from({ length: ex.defaultSets || 3 }, (_, i) => ({
                     id: generateId(),
                     setNumber: i + 1,
                     weight: '',
