@@ -20,4 +20,5 @@ export { useAchievementsStore } from './achievementsStore';
 export type { Achievement } from './achievementsStore';
 export { useWaterStore } from './waterStore';
 export type { WaterEntry, DailyWaterRecord } from './waterStore';
-
+export { useLanguageStore } from './languageStore';
+export type { Language } from './languageStore';

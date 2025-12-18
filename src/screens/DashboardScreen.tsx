@@ -32,6 +32,7 @@ import { Typography, H2, Button } from '../components/atoms';
 import { useThemeStore, useUserStore, useWeeklyProgramStore, useNutritionStore, useWorkoutHistoryStore } from '../store';
 import { useWaterStore } from '../store/waterStore';
 import { useAchievementsStore } from '../store/achievementsStore';
+import { useTranslation } from '../i18n';
 
 // Web-specific draggable wrapper for program editor
 const WebDraggableDay: React.FC<{
@@ -106,6 +107,9 @@ export const DashboardScreen: React.FC = () => {
     const { getTodayProgress, getTodayRecord, dailyGoal, addWater } = useWaterStore();
     const { getUnlockedAchievements, totalPoints } = useAchievementsStore();
 
+    // Get translations
+    const { t } = useTranslation();
+
     // State for modals
     const [showDayHistoryModal, setShowDayHistoryModal] = useState(false);
     const [showProgramEditorModal, setShowProgramEditorModal] = useState(false);
@@ -138,10 +142,10 @@ export const DashboardScreen: React.FC = () => {
 
     const greeting = useMemo(() => {
         const hour = new Date().getHours();
-        if (hour < 12) return 'Günaydın';
-        if (hour < 18) return 'İyi günler';
-        return 'İyi akşamlar';
-    }, []);
+        if (hour < 12) return t.dashboard.greeting.morning;
+        if (hour < 18) return t.dashboard.greeting.afternoon;
+        return t.dashboard.greeting.evening;
+    }, [t]);
 
     const calorieProgress = Math.min(100, (todaysNutrition.totalCalories / goals.dailyCalories) * 100);
     const weeklyGoalProgress = Math.min(100, (thisWeekWorkouts / profile.weeklyGoal) * 100);
@@ -260,17 +264,17 @@ export const DashboardScreen: React.FC = () => {
                             <View style={styles.todayBadge}>
                                 <Calendar size={14} color={colors.textOnPrimary} />
                                 <Typography variant="caption" color={colors.textOnPrimary}>
-                                    BUGÜN
+                                    {t.common.today}
                                 </Typography>
                             </View>
 
                             {todaysWorkout?.isRestDay ? (
                                 <>
                                     <Typography variant="h2" style={{ marginTop: spacing[2] }}>
-                                        Dinlenme Günü 😴
+                                        {t.dashboard.restDay}
                                     </Typography>
                                     <Typography variant="bodySmall" color={colors.textSecondary}>
-                                        Kasların dinlensin, yarın tam gaz!
+                                        {t.dashboard.restDayMessage}
                                     </Typography>
                                 </>
                             ) : todayTemplate ? (
@@ -279,16 +283,16 @@ export const DashboardScreen: React.FC = () => {
                                         {todayTemplate.name}
                                     </Typography>
                                     <Typography variant="bodySmall" color={colors.textSecondary}>
-                                        {todayTemplate.exercises.length} hareket • ~{todayTemplate.estimatedDuration || 60} dk
+                                        {todayTemplate.exercises.length} {t.dashboard.exercises} • ~{todayTemplate.estimatedDuration || 60} {t.dashboard.minutes}
                                     </Typography>
                                 </>
                             ) : (
                                 <>
                                     <Typography variant="h2" style={{ marginTop: spacing[2] }}>
-                                        Antrenman Zamanı!
+                                        {t.dashboard.workoutTime}
                                     </Typography>
                                     <Typography variant="bodySmall" color={colors.textSecondary}>
-                                        Bir program seç ve başla
+                                        {t.dashboard.selectProgram}
                                     </Typography>
                                 </>
                             )}
@@ -373,9 +377,9 @@ export const DashboardScreen: React.FC = () => {
                             <Award size={24} color="#9B59B6" />
                         </View>
                         <View style={styles.achievementInfo}>
-                            <Typography variant="h3">{unlockedBadges.length} Rozet</Typography>
+                            <Typography variant="h3">{unlockedBadges.length} {t.dashboard.achievements}</Typography>
                             <Typography variant="caption" color={colors.textMuted}>
-                                {totalPoints} puan kazandın
+                                {totalPoints} {t.dashboard.pointsEarned}
                             </Typography>
                         </View>
                         <View style={styles.badgeRow}>
@@ -391,10 +395,10 @@ export const DashboardScreen: React.FC = () => {
                 {/* Quick Start Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Typography variant="h3">Hızlı Başlat</Typography>
+                        <Typography variant="h3">{t.dashboard.quickStart}</Typography>
                         <Pressable onPress={() => navigation.navigate('Templates')}>
                             <Typography variant="buttonSmall" color={colors.primary}>
-                                Tümünü Gör
+                                {t.common.seeAll}
                             </Typography>
                         </Pressable>
                     </View>
@@ -411,9 +415,9 @@ export const DashboardScreen: React.FC = () => {
                             <View style={[styles.templateIcon, { backgroundColor: colors.info + '20' }]}>
                                 <Zap size={24} color={colors.info} />
                             </View>
-                            <Typography variant="body">Boş Antrenman</Typography>
+                            <Typography variant="body">{t.dashboard.emptyWorkout}</Typography>
                             <Typography variant="caption" color={colors.textMuted}>
-                                Serbest çalışma
+                                {t.dashboard.freeWorkout}
                             </Typography>
                         </Pressable>
 
@@ -428,7 +432,7 @@ export const DashboardScreen: React.FC = () => {
                                 </View>
                                 <Typography variant="body" numberOfLines={1}>{template.name}</Typography>
                                 <Typography variant="caption" color={colors.textMuted}>
-                                    {template.exercises.length} hareket
+                                    {template.exercises.length} {t.dashboard.exercises}
                                 </Typography>
                             </Pressable>
                         ))}
@@ -439,10 +443,10 @@ export const DashboardScreen: React.FC = () => {
                 <View style={styles.section}>
                     <Pressable style={styles.sectionHeaderClickable} onPress={handleWeekHeaderPress}>
                         <View style={styles.sectionHeaderLeft}>
-                            <Typography variant="h3">Bu Hafta</Typography>
+                            <Typography variant="h3">{t.common.thisWeek}</Typography>
                             <View style={styles.editBadge}>
                                 <Edit3 size={12} color={colors.primary} />
-                                <Typography variant="caption" color={colors.primary}>Düzenle</Typography>
+                                <Typography variant="caption" color={colors.primary}>{t.common.edit}</Typography>
                             </View>
                         </View>
                         <ChevronRight size={20} color={colors.textMuted} />

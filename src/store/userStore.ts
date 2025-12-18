@@ -38,6 +38,8 @@ export interface UserProfile {
     targetWeight?: number;
     // Activity goals
     dailySteps?: number;
+    // Avatar
+    avatarUrl?: string;
 }
 
 interface UserState {

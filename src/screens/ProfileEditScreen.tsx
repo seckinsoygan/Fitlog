@@ -8,6 +8,7 @@ import {
     TextInput,
     Platform,
     Alert,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -20,11 +21,13 @@ import {
     Target,
     Activity,
     Save,
+    Camera,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, Button } from '../components/atoms';
 import { useAuthStore, useThemeStore, useUserStore, useNutritionStore } from '../store';
+
 
 // Web-compatible alert
 const showAlert = (title: string, message: string) => {
@@ -66,6 +69,11 @@ export const ProfileEditScreen: React.FC = () => {
     const [carbsGoal, setCarbsGoal] = useState(String(goals.carbs));
     const [fatGoal, setFatGoal] = useState(String(goals.fat));
     const [waterGoal, setWaterGoal] = useState(String(goals.water / 1000)); // Convert to liters
+    const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || '');
+    const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+    // Avatar emoji options
+    const avatarEmojis = ['💪', '🏋️', '🏃', '⚡', '🔥', '🏆', '🥇', '💎', '🦁', '🐺', '🦅', '🐻'];
 
     const handleSave = async () => {
         try {
@@ -84,6 +92,7 @@ export const ProfileEditScreen: React.FC = () => {
                 height: parseFloat(height) || 175,
                 targetWeight: parseFloat(targetWeight) || 72,
                 dailySteps: parseInt(dailySteps) || 10000,
+                avatarUrl: avatarUrl || undefined,
             });
 
             // Update nutrition goals (saves to Firebase via setGoals)
@@ -162,14 +171,52 @@ export const ProfileEditScreen: React.FC = () => {
             >
                 {/* Avatar Section */}
                 <View style={dynamicStyles.avatarSection}>
-                    <View style={dynamicStyles.avatar}>
-                        <Typography variant="h1" color={colors.textOnPrimary}>
-                            {displayName.charAt(0).toUpperCase()}
-                        </Typography>
-                    </View>
+                    <Pressable style={dynamicStyles.avatar} onPress={() => setShowAvatarPicker(!showAvatarPicker)}>
+                        {avatarUrl ? (
+                            <Typography style={{ fontSize: 48 }}>{avatarUrl}</Typography>
+                        ) : (
+                            <Typography variant="h1" color={colors.textOnPrimary}>
+                                {displayName.charAt(0).toUpperCase()}
+                            </Typography>
+                        )}
+                        <View style={dynamicStyles.cameraButton}>
+                            <Camera size={16} color={colors.textOnPrimary} />
+                        </View>
+                    </Pressable>
                     <Typography variant="caption" color={colors.textMuted}>
                         Avatarı değiştirmek için dokun
                     </Typography>
+
+                    {/* Emoji Avatar Picker */}
+                    {showAvatarPicker && (
+                        <View style={dynamicStyles.emojiPicker}>
+                            {avatarEmojis.map((emoji, index) => (
+                                <Pressable
+                                    key={index}
+                                    style={[
+                                        dynamicStyles.emojiOption,
+                                        avatarUrl === emoji && dynamicStyles.emojiOptionSelected
+                                    ]}
+                                    onPress={() => {
+                                        setAvatarUrl(emoji);
+                                        setShowAvatarPicker(false);
+                                    }}
+                                >
+                                    <Typography style={{ fontSize: 28 }}>{emoji}</Typography>
+                                </Pressable>
+                            ))}
+                            {/* Clear option */}
+                            <Pressable
+                                style={[dynamicStyles.emojiOption, !avatarUrl && dynamicStyles.emojiOptionSelected]}
+                                onPress={() => {
+                                    setAvatarUrl('');
+                                    setShowAvatarPicker(false);
+                                }}
+                            >
+                                <Typography variant="caption" color={colors.textMuted}>❌</Typography>
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
 
                 {/* Personal Info Section */}
@@ -327,5 +374,43 @@ const createStyles = (colors: any) => StyleSheet.create({
     },
     inputSuffix: {
         paddingRight: spacing[3],
+    },
+    cameraButton: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: colors.primary,
+        borderRadius: 15,
+        width: 30,
+        height: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: colors.background,
+    },
+    emojiPicker: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        padding: spacing[3],
+        marginTop: spacing[3],
+        gap: spacing[2],
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    emojiOption: {
+        width: 48,
+        height: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: layout.radiusSmall,
+        backgroundColor: colors.background,
+    },
+    emojiOptionSelected: {
+        backgroundColor: colors.primaryMuted,
+        borderWidth: 2,
+        borderColor: colors.primary,
     },
 });

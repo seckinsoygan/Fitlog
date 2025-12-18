@@ -27,6 +27,7 @@ import {
 } from '../screens';
 import { useThemeStore, useAuthStore, useOnboardingStore, useUserStore } from '../store';
 import { Typography } from '../components/atoms';
+import { useTranslation } from '../i18n';
 
 // Type definitions
 export type RootStackParamList = {
@@ -75,6 +76,7 @@ const LoadingScreen: React.FC = () => {
 // Tab Navigator Component
 const TabNavigator: React.FC = () => {
     const colors = useThemeStore((state) => state.colors);
+    const { t } = useTranslation();
 
     return (
         <Tab.Navigator
@@ -103,7 +105,7 @@ const TabNavigator: React.FC = () => {
                 name="Home"
                 component={DashboardScreen}
                 options={{
-                    tabBarLabel: 'Ana Sayfa',
+                    tabBarLabel: t.tabs.home,
                     tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
                 }}
             />
@@ -111,7 +113,7 @@ const TabNavigator: React.FC = () => {
                 name="Templates"
                 component={TemplatesScreen}
                 options={{
-                    tabBarLabel: 'Programlar',
+                    tabBarLabel: t.tabs.templates,
                     tabBarIcon: ({ color, size }) => <ClipboardList size={size} color={color} />,
                 }}
             />
@@ -119,7 +121,7 @@ const TabNavigator: React.FC = () => {
                 name="Progress"
                 component={ProgressScreen}
                 options={{
-                    tabBarLabel: 'İlerleme',
+                    tabBarLabel: t.tabs.progress,
                     tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
                 }}
             />
@@ -127,7 +129,7 @@ const TabNavigator: React.FC = () => {
                 name="Nutrition"
                 component={NutritionScreen}
                 options={{
-                    tabBarLabel: 'Beslenme',
+                    tabBarLabel: t.tabs.nutrition,
                     tabBarIcon: ({ color, size }) => <Flame size={size} color={color} />,
                 }}
             />
@@ -135,7 +137,7 @@ const TabNavigator: React.FC = () => {
                 name="Exercises"
                 component={ExercisesScreen}
                 options={{
-                    tabBarLabel: 'Hareketler',
+                    tabBarLabel: t.tabs.exercises,
                     tabBarIcon: ({ color, size }) => <Dumbbell size={size} color={color} />,
                 }}
             />
@@ -143,7 +145,7 @@ const TabNavigator: React.FC = () => {
                 name="Settings"
                 component={SettingsScreen}
                 options={{
-                    tabBarLabel: 'Ayarlar',
+                    tabBarLabel: t.tabs.settings,
                     tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
                 }}
             />

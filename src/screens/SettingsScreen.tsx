@@ -17,10 +17,12 @@ import {
     Target,
     Palette,
     LogOut,
+    Globe,
 } from 'lucide-react-native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
-import { useUserStore, useThemeStore, useNutritionStore, useAuthStore } from '../store';
+import { useUserStore, useThemeStore, useNutritionStore, useAuthStore, useLanguageStore } from '../store';
+import { useTranslation, availableLanguages } from '../i18n';
 
 const showAlert = (title: string, message: string, buttons?: any[]) => {
     if (Platform.OS === 'web') {
@@ -106,12 +108,16 @@ export const SettingsScreen: React.FC = () => {
         ]);
     };
 
+    // Get translations
+    const { t, language, setLanguage } = useTranslation();
+
     // Modal states
     const [showNameModal, setShowNameModal] = useState(false);
     const [showRestTimerModal, setShowRestTimerModal] = useState(false);
     const [showWeightUnitModal, setShowWeightUnitModal] = useState(false);
     const [showWeeklyGoalModal, setShowWeeklyGoalModal] = useState(false);
     const [showCalorieGoalModal, setShowCalorieGoalModal] = useState(false);
+    const [showLanguageModal, setShowLanguageModal] = useState(false);
 
     // Form states
     const [tempName, setTempName] = useState(profile.name);
@@ -173,19 +179,23 @@ export const SettingsScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Header */}
-                <H1>Ayarlar</H1>
+                <H1>{t.settings.title}</H1>
 
                 {/* Profile Section */}
                 <Pressable style={styles.profileCard} onPress={() => navigation.navigate('ProfileEdit' as never)}>
                     <View style={styles.avatar}>
-                        <Typography variant="h1" color={colors.textOnPrimary}>
-                            {profile.name.charAt(0)}
-                        </Typography>
+                        {profile.avatarUrl ? (
+                            <Typography style={{ fontSize: 32 }}>{profile.avatarUrl}</Typography>
+                        ) : (
+                            <Typography variant="h1" color={colors.textOnPrimary}>
+                                {profile.name.charAt(0)}
+                            </Typography>
+                        )}
                     </View>
                     <View style={styles.profileInfo}>
                         <Typography variant="h2">{profile.name}</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            Profili düzenlemek için dokun
+                            {t.settings.editProfile}
                         </Typography>
                     </View>
                     <ChevronRight size={20} color={colors.textMuted} />
@@ -195,7 +205,7 @@ export const SettingsScreen: React.FC = () => {
                 <View style={styles.themeSection}>
                     <View style={styles.themeSectionHeader}>
                         <Palette size={20} color={colors.primary} />
-                        <Typography variant="h3">Tema</Typography>
+                        <Typography variant="h3">{t.settings.theme}</Typography>
                     </View>
                     <View style={styles.themeToggleContainer}>
                         <Pressable
@@ -207,7 +217,7 @@ export const SettingsScreen: React.FC = () => {
                                 variant="body"
                                 color={!isDarkMode ? colors.textOnPrimary : colors.textSecondary}
                             >
-                                Açık
+                                {t.settings.lightMode}
                             </Typography>
                         </Pressable>
                         <Pressable
@@ -219,9 +229,25 @@ export const SettingsScreen: React.FC = () => {
                                 variant="body"
                                 color={isDarkMode ? colors.textOnPrimary : colors.textSecondary}
                             >
-                                Koyu
+                                {t.settings.darkMode}
                             </Typography>
                         </Pressable>
+                    </View>
+                </View>
+
+                {/* Language Section */}
+                <View style={styles.section}>
+                    <Typography variant="label" style={styles.sectionLabel}>
+                        DİL / LANGUAGE
+                    </Typography>
+                    <View style={styles.settingsGroup}>
+                        <SettingItem
+                            icon={<Globe size={20} color={colors.info} />}
+                            title={t.settings.language}
+                            subtitle={availableLanguages.find(l => l.code === language)?.nativeLabel || 'Türkçe'}
+                            onPress={() => setShowLanguageModal(true)}
+                            colors={colors}
+                        />
                     </View>
                 </View>
 
@@ -459,6 +485,36 @@ export const SettingsScreen: React.FC = () => {
                             <Typography variant="body">Pound (LBS)</Typography>
                             {profile.weightUnit === 'lbs' && <Check size={20} color={colors.primary} />}
                         </Pressable>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Language Modal */}
+            <Modal visible={showLanguageModal} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalBox}>
+                        <View style={styles.modalBoxHeader}>
+                            <H2>{t.settings.language}</H2>
+                            <Pressable onPress={() => setShowLanguageModal(false)}>
+                                <X size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+                        {availableLanguages.map((lang) => (
+                            <Pressable
+                                key={lang.code}
+                                style={[styles.unitOption, language === lang.code && styles.unitOptionActive]}
+                                onPress={() => {
+                                    setLanguage(lang.code);
+                                    setShowLanguageModal(false);
+                                }}
+                            >
+                                <View>
+                                    <Typography variant="body">{lang.nativeLabel}</Typography>
+                                    <Typography variant="caption" color={colors.textMuted}>{lang.label}</Typography>
+                                </View>
+                                {language === lang.code && <Check size={20} color={colors.primary} />}
+                            </Pressable>
+                        ))}
                     </View>
                 </View>
             </Modal>

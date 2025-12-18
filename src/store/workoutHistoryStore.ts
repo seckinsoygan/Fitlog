@@ -219,10 +219,12 @@ export const useWorkoutHistoryStore = create<WorkoutHistoryState>((set, get) => 
             if (workoutDate >= startOfMonth) thisMonthWorkouts++;
 
             workout.exercises?.forEach((exercise) => {
-                exerciseCount[exercise.exerciseName] = (exerciseCount[exercise.exerciseName] || 0) + 1;
+                const exerciseName = exercise.exerciseName || 'Unknown';
+                exerciseCount[exerciseName] = (exerciseCount[exerciseName] || 0) + 1;
 
                 exercise.sets?.forEach((setData) => {
-                    const key = exercise.exerciseId;
+                    // Use exercise name as key (not ID) for display purposes
+                    const key = exerciseName;
                     const currentPR = personalRecords[key];
                     if (!currentPR || setData.weight > currentPR.weight) {
                         personalRecords[key] = {
