@@ -1,5 +1,5 @@
 // FitLog - Nutrition Screen with Dynamic Theme
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     StyleSheet,
@@ -19,6 +19,9 @@ import {
     Coffee,
     UtensilsCrossed,
     Cookie,
+    ChevronLeft,
+    ChevronRight,
+    Calendar,
 } from 'lucide-react-native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
@@ -44,35 +47,60 @@ export const NutritionScreen: React.FC = () => {
         goals,
         quickFoods,
         getTodayNutrition,
+        getDailyNutrition,
+        getNutritionHistory,
         addFoodEntry,
         removeFoodEntry,
         updateWaterIntake,
     } = useNutritionStore();
 
-    const todayNutrition = getTodayNutrition();
-    const today = new Date().toISOString().split('T')[0];
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+    const isToday = selectedDate === new Date().toISOString().split('T')[0];
+    const currentNutrition = isToday ? getTodayNutrition() : getDailyNutrition(selectedDate);
 
     const [showAddFoodModal, setShowAddFoodModal] = useState(false);
     const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
 
-    // Calculate percentages
-    const caloriePercentage = Math.min(100, (todayNutrition.totalCalories / goals.dailyCalories) * 100);
-    const proteinPercentage = Math.min(100, (todayNutrition.totalMacros.protein / goals.protein) * 100);
-    const carbsPercentage = Math.min(100, (todayNutrition.totalMacros.carbs / goals.carbs) * 100);
-    const fatPercentage = Math.min(100, (todayNutrition.totalMacros.fat / goals.fat) * 100);
-    const waterPercentage = Math.min(100, (todayNutrition.waterIntake / goals.water) * 100);
+    // Get last 7 days of nutrition history
+    const nutritionHistory = getNutritionHistory(7);
 
-    const handleAddWater = (amount: number) => updateWaterIntake(today, amount);
+    // Calculate percentages
+    const caloriePercentage = Math.min(100, (currentNutrition.totalCalories / goals.dailyCalories) * 100);
+    const proteinPercentage = Math.min(100, (currentNutrition.totalMacros.protein / goals.protein) * 100);
+    const carbsPercentage = Math.min(100, (currentNutrition.totalMacros.carbs / goals.carbs) * 100);
+    const fatPercentage = Math.min(100, (currentNutrition.totalMacros.fat / goals.fat) * 100);
+    const waterPercentage = Math.min(100, (currentNutrition.waterIntake / goals.water) * 100);
+
+    const handleAddWater = (amount: number) => {
+        if (isToday) updateWaterIntake(selectedDate, amount);
+    };
 
     const handleAddFood = (food: Omit<FoodEntry, 'id' | 'timestamp'>) => {
-        addFoodEntry(today, { ...food, mealType: selectedMealType });
+        if (isToday) {
+            addFoodEntry(selectedDate, { ...food, mealType: selectedMealType });
+        }
         setShowAddFoodModal(false);
     };
 
-    const handleRemoveFood = (entryId: string) => removeFoodEntry(today, entryId);
+    const handleRemoveFood = (entryId: string) => {
+        if (isToday) removeFoodEntry(selectedDate, entryId);
+    };
+
+    const formatDateLabel = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (dateStr === today.toISOString().split('T')[0]) return 'Bugün';
+        if (dateStr === yesterday.toISOString().split('T')[0]) return 'Dün';
+        return date.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
+    };
 
     // Group entries by meal type
-    const entriesByMeal = todayNutrition.entries.reduce((acc, entry) => {
+    const entriesByMeal = currentNutrition.entries.reduce((acc, entry) => {
         if (!acc[entry.mealType]) acc[entry.mealType] = [];
         acc[entry.mealType].push(entry);
         return acc;
@@ -92,7 +120,7 @@ export const NutritionScreen: React.FC = () => {
                     <View>
                         <H1>Beslenme</H1>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            Bugünkü kalori takibin
+                            {formatDateLabel(selectedDate)}
                         </Typography>
                     </View>
                     <View style={styles.headerIcon}>
@@ -100,12 +128,85 @@ export const NutritionScreen: React.FC = () => {
                     </View>
                 </View>
 
+                {/* Date Selector */}
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    paddingVertical: 8,
+                    marginBottom: 16,
+                }}>
+                    <Pressable
+                        onPress={() => {
+                            const date = new Date(selectedDate);
+                            date.setDate(date.getDate() - 1);
+                            setSelectedDate(date.toISOString().split('T')[0]);
+                        }}
+                        style={{
+                            padding: 8,
+                            borderRadius: 8,
+                            backgroundColor: colors.surface,
+                        }}
+                    >
+                        <ChevronLeft size={20} color={colors.textSecondary} />
+                    </Pressable>
+
+                    <Pressable
+                        onPress={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                        style={{
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                            backgroundColor: isToday ? colors.primary : colors.surface,
+                        }}
+                    >
+                        <Typography variant="label" color={isToday ? colors.textOnPrimary : colors.textPrimary}>
+                            {formatDateLabel(selectedDate)}
+                        </Typography>
+                    </Pressable>
+
+                    <Pressable
+                        onPress={() => {
+                            const date = new Date(selectedDate);
+                            const today = new Date();
+                            if (date < today) {
+                                date.setDate(date.getDate() + 1);
+                                setSelectedDate(date.toISOString().split('T')[0]);
+                            }
+                        }}
+                        style={{
+                            padding: 8,
+                            borderRadius: 8,
+                            backgroundColor: colors.surface,
+                            opacity: isToday ? 0.5 : 1,
+                        }}
+                    >
+                        <ChevronRight size={20} color={colors.textSecondary} />
+                    </Pressable>
+                </View>
+
+                {/* Past Date Notice */}
+                {!isToday && (
+                    <View style={{
+                        backgroundColor: colors.warning + '20',
+                        padding: 12,
+                        borderRadius: 8,
+                        marginBottom: 16,
+                        alignItems: 'center',
+                    }}>
+                        <Typography variant="caption" color={colors.warning}>
+                            Geçmiş tarihi görüntülüyorsunuz. Düzenleme yapılamaz.
+                        </Typography>
+                    </View>
+                )}
+
                 {/* Main Calorie Card */}
                 <View style={styles.calorieCard}>
                     <View style={styles.calorieHeader}>
                         <View style={styles.calorieMain}>
                             <Typography variant="h1" color={colors.primary}>
-                                {todayNutrition.totalCalories}
+                                {currentNutrition.totalCalories}
                             </Typography>
                             <Typography variant="bodySmall" color={colors.textSecondary}>
                                 / {goals.dailyCalories} kcal
@@ -121,8 +222,8 @@ export const NutritionScreen: React.FC = () => {
                         <View style={[styles.progressFillLarge, { width: `${caloriePercentage}%` }]} />
                     </View>
                     <Typography variant="caption" color={colors.textMuted} style={{ textAlign: 'center' }}>
-                        {goals.dailyCalories - todayNutrition.totalCalories > 0
-                            ? `${goals.dailyCalories - todayNutrition.totalCalories} kcal kaldı`
+                        {goals.dailyCalories - currentNutrition.totalCalories > 0
+                            ? `${goals.dailyCalories - currentNutrition.totalCalories} kcal kaldı`
                             : 'Hedefe ulaşıldı! 🎉'}
                     </Typography>
                 </View>
@@ -133,7 +234,7 @@ export const NutritionScreen: React.FC = () => {
                         <View style={[styles.macroIcon, { backgroundColor: colors.info + '20' }]}>
                             <Typography variant="label" color={colors.info}>P</Typography>
                         </View>
-                        <Typography variant="h3">{Math.round(todayNutrition.totalMacros.protein)}g</Typography>
+                        <Typography variant="h3">{Math.round(currentNutrition.totalMacros.protein)}g</Typography>
                         <View style={styles.macroProgress}>
                             <View style={[styles.macroFill, { width: `${proteinPercentage}%`, backgroundColor: colors.info }]} />
                         </View>
@@ -144,7 +245,7 @@ export const NutritionScreen: React.FC = () => {
                         <View style={[styles.macroIcon, { backgroundColor: colors.warning + '20' }]}>
                             <Typography variant="label" color={colors.warning}>K</Typography>
                         </View>
-                        <Typography variant="h3">{Math.round(todayNutrition.totalMacros.carbs)}g</Typography>
+                        <Typography variant="h3">{Math.round(currentNutrition.totalMacros.carbs)}g</Typography>
                         <View style={styles.macroProgress}>
                             <View style={[styles.macroFill, { width: `${carbsPercentage}%`, backgroundColor: colors.warning }]} />
                         </View>
@@ -155,7 +256,7 @@ export const NutritionScreen: React.FC = () => {
                         <View style={[styles.macroIcon, { backgroundColor: colors.error + '20' }]}>
                             <Typography variant="label" color={colors.error}>Y</Typography>
                         </View>
-                        <Typography variant="h3">{Math.round(todayNutrition.totalMacros.fat)}g</Typography>
+                        <Typography variant="h3">{Math.round(currentNutrition.totalMacros.fat)}g</Typography>
                         <View style={styles.macroProgress}>
                             <View style={[styles.macroFill, { width: `${fatPercentage}%`, backgroundColor: colors.error }]} />
                         </View>
@@ -172,7 +273,7 @@ export const NutritionScreen: React.FC = () => {
                         <View style={styles.waterInfo}>
                             <Typography variant="body">Su Tüketimi</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>
-                                {(todayNutrition.waterIntake / 1000).toFixed(1)}L / {(goals.water / 1000).toFixed(1)}L
+                                {(currentNutrition.waterIntake / 1000).toFixed(1)}L / {(goals.water / 1000).toFixed(1)}L
                             </Typography>
                         </View>
                         <View style={styles.waterButtons}>
@@ -341,3 +442,4 @@ const createStyles = (colors: any) => StyleSheet.create({
     quickFoodIcon: { width: 40, height: 40, borderRadius: layout.radiusMedium, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
     quickFoodInfo: { flex: 1, gap: 2 },
 });
+
