@@ -294,6 +294,30 @@ export const AppNavigator: React.FC = () => {
                     console.log('✅ Workout history loaded from Firebase');
                 });
             });
+
+            // Load weekly programs
+            import('../store/weeklyProgramStore').then(({ useWeeklyProgramStore }) => {
+                const { loadPrograms } = useWeeklyProgramStore.getState();
+                loadPrograms().then(() => {
+                    console.log('✅ Weekly programs loaded from Firebase');
+                });
+            });
+
+            // Load nutrition data
+            import('../store/nutritionStore').then(({ useNutritionStore }) => {
+                const { loadFromFirestore } = useNutritionStore.getState();
+                loadFromFirestore().then(() => {
+                    console.log('✅ Nutrition data loaded from Firebase');
+                });
+            });
+
+            // Load water data
+            import('../store/waterStore').then(({ useWaterStore }) => {
+                const { loadFromFirestore } = useWaterStore.getState();
+                loadFromFirestore().then(() => {
+                    console.log('✅ Water data loaded from Firebase');
+                });
+            });
         }
     }, [user, isInitialized]);
 

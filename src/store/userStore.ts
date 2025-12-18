@@ -31,6 +31,13 @@ export interface UserProfile {
     weeklyGoal: number;
     restTimerDefault: number;
     weightUnit: 'kg' | 'lbs';
+    // Body metrics
+    age?: number;
+    weight?: number; // in kg
+    height?: number; // in cm
+    targetWeight?: number;
+    // Activity goals
+    dailySteps?: number;
 }
 
 interface UserState {

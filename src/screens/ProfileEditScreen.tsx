@@ -52,13 +52,13 @@ export const ProfileEditScreen: React.FC = () => {
     const { profile, updateProfile } = useUserStore();
     const { goals, setGoals } = useNutritionStore();
 
-    // Form state
+    // Form state - load from existing profile
     const [displayName, setDisplayName] = useState(userProfile?.displayName || profile.name);
-    const [weight, setWeight] = useState('75');
-    const [height, setHeight] = useState('175');
-    const [age, setAge] = useState('25');
-    const [targetWeight, setTargetWeight] = useState('72');
-    const [dailySteps, setDailySteps] = useState('10000');
+    const [weight, setWeight] = useState(String(profile.weight || 75));
+    const [height, setHeight] = useState(String(profile.height || 175));
+    const [age, setAge] = useState(String(profile.age || 25));
+    const [targetWeight, setTargetWeight] = useState(String(profile.targetWeight || 72));
+    const [dailySteps, setDailySteps] = useState(String(profile.dailySteps || 10000));
     const [weeklyGoal, setWeeklyGoal] = useState(String(profile.weeklyGoal));
     const [restTimer, setRestTimer] = useState(String(profile.restTimerDefault));
     const [dailyCalories, setDailyCalories] = useState(String(goals.dailyCalories));
@@ -74,14 +74,19 @@ export const ProfileEditScreen: React.FC = () => {
                 await updateUserProfile({ displayName });
             }
 
-            // Update local profile
+            // Update local profile with ALL fields (saves to Firebase via updateProfile)
             updateProfile({
                 name: displayName,
                 weeklyGoal: parseInt(weeklyGoal) || 4,
                 restTimerDefault: parseInt(restTimer) || 90,
+                age: parseInt(age) || 25,
+                weight: parseFloat(weight) || 75,
+                height: parseFloat(height) || 175,
+                targetWeight: parseFloat(targetWeight) || 72,
+                dailySteps: parseInt(dailySteps) || 10000,
             });
 
-            // Update nutrition goals
+            // Update nutrition goals (saves to Firebase via setGoals)
             setGoals({
                 dailyCalories: parseInt(dailyCalories) || 2500,
                 protein: parseInt(proteinGoal) || 180,

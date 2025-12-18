@@ -1,5 +1,8 @@
-// FitLog - Weekly Program Store with Drag & Drop Support
+// FitLog - Weekly Program Store with Firebase Sync
 import { create } from 'zustand';
+import firebase from 'firebase/compat/app';
+import { db } from '../config/firebase';
+import { useAuthStore } from './authStore';
 
 export interface WeeklyProgramDay {
     dayIndex: number; // 0-6 (Pazar-Cumartesi)
@@ -19,8 +22,12 @@ export interface WeeklyProgram {
 interface WeeklyProgramState {
     programs: WeeklyProgram[];
     activeProgram: WeeklyProgram | null;
+    isLoading: boolean;
+    isSynced: boolean;
 
     // Actions
+    loadPrograms: () => Promise<void>;
+    saveToFirestore: () => Promise<void>;
     createProgram: (name: string) => WeeklyProgram;
     updateProgram: (programId: string, updates: Partial<WeeklyProgram>) => void;
     deleteProgram: (programId: string) => void;
@@ -29,6 +36,7 @@ interface WeeklyProgramState {
     toggleRestDay: (programId: string, dayIndex: number) => void;
     swapDays: (programId: string, fromDayIndex: number, toDayIndex: number) => void;
     getTodaysWorkout: () => WeeklyProgramDay | null;
+    setProgram: (program: WeeklyProgram) => void;
 }
 
 const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
@@ -64,6 +72,67 @@ const defaultProgram: WeeklyProgram = {
 export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
     programs: [defaultProgram],
     activeProgram: defaultProgram,
+    isLoading: false,
+    isSynced: false,
+
+    // Load programs from Firestore
+    loadPrograms: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) {
+            console.log('⚠️ No user logged in, using default program');
+            return;
+        }
+
+        set({ isLoading: true });
+
+        try {
+            const doc = await db.collection('userPrograms').doc(user.uid).get();
+
+            if (doc.exists) {
+                const data = doc.data();
+                const programs: WeeklyProgram[] = data?.programs || [defaultProgram];
+                const activeProgram = programs.find(p => p.isActive) || programs[0] || defaultProgram;
+
+                set({
+                    programs,
+                    activeProgram,
+                    isLoading: false,
+                    isSynced: true
+                });
+                console.log('✅ Programs loaded from Firestore');
+            } else {
+                // First time user - save default program
+                await get().saveToFirestore();
+                set({ isLoading: false, isSynced: true });
+                console.log('✅ Default program saved for new user');
+            }
+        } catch (error) {
+            console.error('❌ Error loading programs:', error);
+            set({ isLoading: false });
+        }
+    },
+
+    // Save programs to Firestore
+    saveToFirestore: async () => {
+        const user = useAuthStore.getState().user;
+        if (!user) {
+            console.log('⚠️ No user logged in, cannot save to Firestore');
+            return;
+        }
+
+        const { programs } = get();
+
+        try {
+            await db.collection('userPrograms').doc(user.uid).set({
+                programs,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            set({ isSynced: true });
+            console.log('✅ Programs saved to Firestore');
+        } catch (error) {
+            console.error('❌ Error saving programs:', error);
+        }
+    },
 
     createProgram: (name) => {
         const newProgram: WeeklyProgram = {
@@ -75,6 +144,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
         set((state) => ({
             programs: [...state.programs, newProgram],
         }));
+        get().saveToFirestore();
         return newProgram;
     },
 
@@ -87,6 +157,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                 ? { ...state.activeProgram, ...updates }
                 : state.activeProgram,
         }));
+        get().saveToFirestore();
     },
 
     deleteProgram: (programId) => {
@@ -94,6 +165,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
             programs: state.programs.filter((p) => p.id !== programId),
             activeProgram: state.activeProgram?.id === programId ? null : state.activeProgram,
         }));
+        get().saveToFirestore();
     },
 
     setActiveProgram: (programId) => {
@@ -108,6 +180,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                 activeProgram,
             };
         });
+        get().saveToFirestore();
     },
 
     assignTemplateToDay: (programId, dayIndex, templateId, templateName) => {
@@ -135,6 +208,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                 }
                 : state.activeProgram,
         }));
+        get().saveToFirestore();
     },
 
     toggleRestDay: (programId, dayIndex) => {
@@ -152,6 +226,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                     : p
             ),
         }));
+        get().saveToFirestore();
     },
 
     // Swap workouts between two days (for drag & drop)
@@ -167,7 +242,6 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
 
                 return days.map((d) => {
                     if (d.dayIndex === fromDayIndex) {
-                        // FromDay gets toDay's workout
                         return {
                             ...d,
                             templateId: toDay.templateId,
@@ -176,7 +250,6 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                         };
                     }
                     if (d.dayIndex === toDayIndex) {
-                        // ToDay gets fromDay's workout
                         return {
                             ...d,
                             templateId: fromDay.templateId,
@@ -199,6 +272,7 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
                     : state.activeProgram,
             };
         });
+        get().saveToFirestore();
     },
 
     getTodaysWorkout: () => {
@@ -207,5 +281,26 @@ export const useWeeklyProgramStore = create<WeeklyProgramState>((set, get) => ({
 
         const todayIndex = new Date().getDay();
         return activeProgram.days.find((d) => d.dayIndex === todayIndex) || null;
+    },
+
+    // Set program directly (used by onboarding)
+    setProgram: (program) => {
+        set((state) => {
+            // Deactivate all other programs and set new one as active
+            const updatedPrograms = state.programs.map(p => ({ ...p, isActive: false }));
+            const existingIndex = updatedPrograms.findIndex(p => p.id === program.id);
+
+            if (existingIndex >= 0) {
+                updatedPrograms[existingIndex] = { ...program, isActive: true };
+            } else {
+                updatedPrograms.push({ ...program, isActive: true });
+            }
+
+            return {
+                programs: updatedPrograms,
+                activeProgram: { ...program, isActive: true },
+            };
+        });
+        get().saveToFirestore();
     },
 }));

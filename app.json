@@ -1,35 +1,36 @@
 {
-  "expo": {
-    "name": "FitLog",
-    "slug": "fitlog-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#09090B"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.fitlog.app"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#09090B"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.fitlog.app"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-sqlite"
-    ]
-  }
+    "expo": {
+        "name": "FitLog",
+        "slug": "fitlog-app",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "scheme": "fitlog",
+        "splash": {
+            "image": "./assets/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#09090B"
+        },
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.fitlog.app"
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#09090B"
+            },
+            "edgeToEdgeEnabled": true,
+            "package": "com.fitlog.app"
+        },
+        "web": {
+            "favicon": "./assets/favicon.png",
+            "bundler": "metro"
+        },
+        "plugins": [
+            "expo-sqlite"
+        ]
+    }
 }

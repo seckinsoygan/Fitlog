@@ -363,45 +363,28 @@ export const DashboardScreen: React.FC = () => {
                     </Pressable>
                 </View>
 
-                {/* Water & Achievements Row */}
-                <View style={styles.statsRow}>
-                    {/* Water Card */}
+                {/* Achievements Section */}
+                <View style={styles.section}>
                     <Pressable
-                        style={styles.statCard}
-                        onPress={() => addWater()}
-                    >
-                        <View style={[styles.statIcon, { backgroundColor: colors.info + '20' }]}>
-                            <Droplets size={20} color={colors.info} />
-                        </View>
-                        <View style={styles.statInfo}>
-                            <Typography variant="h3">{(waterRecord.totalAmount / 1000).toFixed(1)}L</Typography>
-                            <Typography variant="caption" color={colors.textMuted}>
-                                / {(dailyGoal / 1000).toFixed(1)}L su
-                            </Typography>
-                        </View>
-                        <View style={styles.progressBar}>
-                            <View style={[styles.progressFill, { width: `${waterProgress}%`, backgroundColor: colors.info }]} />
-                        </View>
-                    </Pressable>
-
-                    {/* Achievements Card */}
-                    <Pressable
-                        style={styles.statCard}
+                        style={styles.achievementCard}
                         onPress={() => navigation.navigate('Achievements')}
                     >
                         <View style={[styles.statIcon, { backgroundColor: '#9B59B6' + '20' }]}>
-                            <Award size={20} color="#9B59B6" />
+                            <Award size={24} color="#9B59B6" />
                         </View>
-                        <View style={styles.statInfo}>
-                            <Typography variant="h3">{unlockedBadges.length}</Typography>
+                        <View style={styles.achievementInfo}>
+                            <Typography variant="h3">{unlockedBadges.length} Rozet</Typography>
                             <Typography variant="caption" color={colors.textMuted}>
-                                rozet • {totalPoints}p
+                                {totalPoints} puan kazandın
                             </Typography>
                         </View>
                         <View style={styles.badgeRow}>
-                            {unlockedBadges.slice(0, 3).map((badge) => (
-                                <Typography key={badge.id} variant="caption">{badge.emoji}</Typography>
+                            {unlockedBadges.slice(0, 4).map((badge) => (
+                                <Typography key={badge.id} style={styles.badgeEmoji}>{badge.emoji}</Typography>
                             ))}
+                            {unlockedBadges.length > 4 && (
+                                <Typography variant="caption" color={colors.textMuted}>+{unlockedBadges.length - 4}</Typography>
+                            )}
                         </View>
                     </Pressable>
                 </View>
@@ -1067,7 +1050,28 @@ const createStyles = (colors: any) => StyleSheet.create({
     },
     badgeRow: {
         flexDirection: 'row',
-        gap: spacing[1],
+        alignItems: 'center',
+        gap: spacing[2],
+    },
+    badgeEmoji: {
+        fontSize: 20,
+    },
+    achievementCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        padding: spacing[4],
+        borderWidth: 1,
+        borderColor: colors.border,
+        gap: spacing[3],
+        ...Platform.select({
+            web: { cursor: 'pointer' },
+        }),
+    },
+    achievementInfo: {
+        flex: 1,
+        gap: 2,
     },
     // Program Editor Styles
     dragHint: {
