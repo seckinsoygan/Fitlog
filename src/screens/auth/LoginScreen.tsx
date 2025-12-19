@@ -16,12 +16,12 @@ import { layout, spacing } from '../../theme/spacing';
 import { Typography, H1, Button } from '../../components/atoms';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store';
-import { GoogleIcon, AppleIcon } from '../../components/icons/SocialIcons';
+import { GoogleIcon } from '../../components/icons/SocialIcons';
 
 export const LoginScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { signIn, signInWithGoogle, signInWithApple, isLoading, error, clearError } = useAuthStore();
+    const { signIn, signInWithGoogle, isLoading, error, clearError } = useAuthStore();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -56,19 +56,6 @@ export const LoginScreen: React.FC = () => {
         setSocialLoading('google');
         try {
             await signInWithGoogle();
-        } catch (err: any) {
-            // Error is handled by the store
-        } finally {
-            setSocialLoading(null);
-        }
-    };
-
-    const handleAppleSignIn = async () => {
-        setLocalError('');
-        clearError();
-        setSocialLoading('apple');
-        try {
-            await signInWithApple();
         } catch (err: any) {
             // Error is handled by the store
         } finally {
@@ -207,21 +194,11 @@ export const LoginScreen: React.FC = () => {
                             <Pressable
                                 style={[styles.socialButton, socialLoading === 'google' && styles.buttonDisabled]}
                                 onPress={handleGoogleSignIn}
-                                disabled={socialLoading !== null}
+                                disabled={socialLoading !== null || isLoading}
                             >
                                 <GoogleIcon size={20} />
                                 <Typography variant="body">
-                                    {socialLoading === 'google' ? 'Giriş...' : 'Google'}
-                                </Typography>
-                            </Pressable>
-                            <Pressable
-                                style={[styles.socialButton, styles.appleButton, socialLoading === 'apple' && styles.buttonDisabled]}
-                                onPress={handleAppleSignIn}
-                                disabled={socialLoading !== null}
-                            >
-                                <AppleIcon size={20} />
-                                <Typography variant="body" color="#fff">
-                                    {socialLoading === 'apple' ? 'Giriş...' : 'Apple'}
+                                    {socialLoading === 'google' ? 'Giriş yapılıyor...' : 'Google ile devam et'}
                                 </Typography>
                             </Pressable>
                         </View>
