@@ -145,6 +145,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             }
             set({ isLoading: false });
         } catch (error: any) {
+            console.error('❌ Google Sign-In Error:', error);
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+
             let errorMessage = 'Google ile giriş yapılırken bir hata oluştu';
             if (error.code === 'auth/popup-closed-by-user') {
                 errorMessage = 'Giriş penceresi kapatıldı';
@@ -152,6 +156,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 errorMessage = 'Pop-up penceresi engellendi. Lütfen izin verin.';
             } else if (error.code === 'auth/cancelled-popup-request') {
                 errorMessage = 'Giriş iptal edildi';
+            } else if (error.code === 'auth/unauthorized-domain') {
+                errorMessage = 'Bu domain Firebase\'de yetkilendirilmemiş. Firebase Console > Authentication > Settings > Authorized domains kısmına localhost ekleyin.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'Google Sign-In etkin değil. Firebase Console\'da etkinleştirin.';
+            } else if (error.message) {
+                errorMessage = error.message;
             }
             set({ isLoading: false, error: errorMessage });
             throw error;
