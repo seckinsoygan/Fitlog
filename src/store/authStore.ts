@@ -28,6 +28,8 @@ interface AuthState {
     initialize: () => (() => void) | undefined;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, displayName: string) => Promise<void>;
+    signInWithGoogle: () => Promise<void>;
+    signInWithApple: () => Promise<void>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
@@ -102,6 +104,100 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 errorMessage = 'Geçersiz e-posta adresi';
             } else if (error.code === 'auth/too-many-requests') {
                 errorMessage = 'Çok fazla deneme. Lütfen daha sonra tekrar deneyin.';
+            }
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    signInWithGoogle: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope('profile');
+            provider.addScope('email');
+
+            const result = await auth.signInWithPopup(provider);
+
+            if (result.user) {
+                // Check if user profile exists, create if not
+                const userDoc = await db.collection('users').doc(result.user.uid).get();
+
+                if (!userDoc.exists) {
+                    const userProfile: UserProfile = {
+                        uid: result.user.uid,
+                        email: result.user.email || '',
+                        displayName: result.user.displayName || 'Sporcu',
+                        photoURL: result.user.photoURL || undefined,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        weightUnit: 'kg',
+                        weeklyGoal: 4,
+                        restTimerDefault: 90,
+                        dailyCalorieGoal: 2500,
+                    };
+                    await db.collection('users').doc(result.user.uid).set(userProfile);
+                } else {
+                    await db.collection('users').doc(result.user.uid).update({
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    });
+                }
+            }
+            set({ isLoading: false });
+        } catch (error: any) {
+            let errorMessage = 'Google ile giriş yapılırken bir hata oluştu';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'Giriş penceresi kapatıldı';
+            } else if (error.code === 'auth/popup-blocked') {
+                errorMessage = 'Pop-up penceresi engellendi. Lütfen izin verin.';
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                errorMessage = 'Giriş iptal edildi';
+            }
+            set({ isLoading: false, error: errorMessage });
+            throw error;
+        }
+    },
+
+    signInWithApple: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            provider.addScope('email');
+            provider.addScope('name');
+
+            const result = await auth.signInWithPopup(provider);
+
+            if (result.user) {
+                // Check if user profile exists, create if not
+                const userDoc = await db.collection('users').doc(result.user.uid).get();
+
+                if (!userDoc.exists) {
+                    const userProfile: UserProfile = {
+                        uid: result.user.uid,
+                        email: result.user.email || '',
+                        displayName: result.user.displayName || 'Sporcu',
+                        photoURL: result.user.photoURL || undefined,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        weightUnit: 'kg',
+                        weeklyGoal: 4,
+                        restTimerDefault: 90,
+                        dailyCalorieGoal: 2500,
+                    };
+                    await db.collection('users').doc(result.user.uid).set(userProfile);
+                } else {
+                    await db.collection('users').doc(result.user.uid).update({
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    });
+                }
+            }
+            set({ isLoading: false });
+        } catch (error: any) {
+            let errorMessage = 'Apple ile giriş yapılırken bir hata oluştu';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'Giriş penceresi kapatıldı';
+            } else if (error.code === 'auth/popup-blocked') {
+                errorMessage = 'Pop-up penceresi engellendi. Lütfen izin verin.';
             }
             set({ isLoading: false, error: errorMessage });
             throw error;

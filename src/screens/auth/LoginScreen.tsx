@@ -16,17 +16,19 @@ import { layout, spacing } from '../../theme/spacing';
 import { Typography, H1, Button } from '../../components/atoms';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store';
+import { GoogleIcon, AppleIcon } from '../../components/icons/SocialIcons';
 
 export const LoginScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { signIn, isLoading, error, clearError } = useAuthStore();
+    const { signIn, signInWithGoogle, signInWithApple, isLoading, error, clearError } = useAuthStore();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [localError, setLocalError] = useState('');
     const [focusedInput, setFocusedInput] = useState<string | null>(null);
+    const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
     const handleLogin = async () => {
         setLocalError('');
@@ -49,11 +51,29 @@ export const LoginScreen: React.FC = () => {
     };
 
     const handleGoogleSignIn = async () => {
-        setLocalError('Google ile giriş yakında aktif olacak');
+        setLocalError('');
+        clearError();
+        setSocialLoading('google');
+        try {
+            await signInWithGoogle();
+        } catch (err: any) {
+            // Error is handled by the store
+        } finally {
+            setSocialLoading(null);
+        }
     };
 
     const handleAppleSignIn = async () => {
-        setLocalError('Apple ile giriş yakında aktif olacak');
+        setLocalError('');
+        clearError();
+        setSocialLoading('apple');
+        try {
+            await signInWithApple();
+        } catch (err: any) {
+            // Error is handled by the store
+        } finally {
+            setSocialLoading(null);
+        }
     };
 
     const styles = createStyles(colors);
@@ -184,13 +204,25 @@ export const LoginScreen: React.FC = () => {
 
                         {/* Social Buttons */}
                         <View style={styles.socialButtons}>
-                            <Pressable style={styles.socialButton} onPress={handleGoogleSignIn}>
-                                <Typography variant="body" style={{ fontWeight: '600' }}>G</Typography>
-                                <Typography variant="body">Google</Typography>
+                            <Pressable
+                                style={[styles.socialButton, socialLoading === 'google' && styles.buttonDisabled]}
+                                onPress={handleGoogleSignIn}
+                                disabled={socialLoading !== null}
+                            >
+                                <GoogleIcon size={20} />
+                                <Typography variant="body">
+                                    {socialLoading === 'google' ? 'Giriş...' : 'Google'}
+                                </Typography>
                             </Pressable>
-                            <Pressable style={[styles.socialButton, styles.appleButton]} onPress={handleAppleSignIn}>
-                                <Typography variant="body" color="#fff" style={{ fontWeight: '600' }}>🍎</Typography>
-                                <Typography variant="body" color="#fff">Apple</Typography>
+                            <Pressable
+                                style={[styles.socialButton, styles.appleButton, socialLoading === 'apple' && styles.buttonDisabled]}
+                                onPress={handleAppleSignIn}
+                                disabled={socialLoading !== null}
+                            >
+                                <AppleIcon size={20} />
+                                <Typography variant="body" color="#fff">
+                                    {socialLoading === 'apple' ? 'Giriş...' : 'Apple'}
+                                </Typography>
                             </Pressable>
                         </View>
                     </View>
