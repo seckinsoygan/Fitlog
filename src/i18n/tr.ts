@@ -147,10 +147,16 @@ export const tr = {
         presetHint: 'Hızlıca ekle ve özelleştir',
         add: 'Ekle',
         program: 'program',
+        daysPerWeek: 'gün/hafta',
         // Preset descriptions
         pplDescription: '3 günlük klasik bölme programı',
+        ppl3DayDescription: '3 günlük Push/Pull/Legs - her kas grubu haftada 1 kez',
+        ppl6DayDescription: '6 günlük PPL - her kas grubu haftada 2 kez, ileri seviye',
         fullBodyDescription: 'Haftada 3 gün tam vücut',
+        fullBody3DayDescription: '3 günlük Full Body - yeni başlayanlar için ideal',
         upperLowerDescription: '4 günlük üst/alt bölme',
+        upperLower4DayDescription: '4 günlük Upper/Lower - dengeli kas gelişimi',
+        broSplit5DayDescription: '5 günlük Bro Split - her kas grubuna özel gün',
         hiitDescription: 'Yüksek yoğunluklu interval',
     },
 

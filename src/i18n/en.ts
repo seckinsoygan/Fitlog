@@ -147,10 +147,16 @@ export const en = {
         presetHint: 'Add quickly and customize',
         add: 'Add',
         program: 'program',
+        daysPerWeek: 'days/week',
         // Preset descriptions
         pplDescription: '3-day classic split program',
+        ppl3DayDescription: '3-day Push/Pull/Legs - each muscle once a week',
+        ppl6DayDescription: '6-day PPL - each muscle twice a week, advanced',
         fullBodyDescription: 'Full body 3 days a week',
+        fullBody3DayDescription: '3-day Full Body - ideal for beginners',
         upperLowerDescription: '4-day upper/lower split',
+        upperLower4DayDescription: '4-day Upper/Lower - balanced muscle development',
+        broSplit5DayDescription: '5-day Bro Split - dedicated day for each muscle',
         hiitDescription: 'High intensity interval training',
     },
 
