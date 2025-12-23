@@ -158,6 +158,13 @@ export const tr = {
         upperLower4DayDescription: '4 günlük Upper/Lower - dengeli kas gelişimi',
         broSplit5DayDescription: '5 günlük Bro Split - her kas grubuna özel gün',
         hiitDescription: 'Yüksek yoğunluklu interval',
+        // Actions
+        alreadyAdded: 'Zaten Eklendi',
+        alreadyAddedMessage: 'Bu program zaten eklenmiş. Tekrar eklemek için önce mevcut olanı silin.',
+        clearAll: 'Tümünü Sil',
+        clearAllConfirm: 'Tüm programları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+        cancel: 'İptal',
+        delete: 'Sil',
     },
 
     // Nutrition

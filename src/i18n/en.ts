@@ -158,6 +158,13 @@ export const en = {
         upperLower4DayDescription: '4-day Upper/Lower - balanced muscle development',
         broSplit5DayDescription: '5-day Bro Split - dedicated day for each muscle',
         hiitDescription: 'High intensity interval training',
+        // Actions
+        alreadyAdded: 'Already Added',
+        alreadyAddedMessage: 'This program is already added. Remove existing one to add again.',
+        clearAll: 'Clear All',
+        clearAllConfirm: 'Are you sure you want to delete all programs? This action cannot be undone.',
+        cancel: 'Cancel',
+        delete: 'Delete',
     },
 
     // Nutrition

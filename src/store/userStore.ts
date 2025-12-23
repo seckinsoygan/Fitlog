@@ -55,10 +55,12 @@ interface UserState {
     updateTemplate: (id: string, updates: Partial<WorkoutTemplate>) => void;
     deleteTemplate: (id: string) => void;
     duplicateTemplate: (id: string) => WorkoutTemplate | null;
+    clearAllTemplates: () => void;
     addExerciseToTemplate: (templateId: string, exercise: Omit<TemplateExercise, 'id'>) => void;
     removeExerciseFromTemplate: (templateId: string, exerciseId: string) => void;
     reorderExercisesInTemplate: (templateId: string, exerciseIds: string[]) => void;
-    addPresetProgram: (preset: { name: string; description: string; color: string; exercises: Omit<TemplateExercise, 'id'>[] }) => void;
+    addPresetProgram: (preset: { name: string; description: string; color: string; exercises: Omit<TemplateExercise, 'id'>[] }) => boolean;
+    isPresetAdded: (presetName: string) => boolean;
     setTemplates: (templates: WorkoutTemplate[]) => void;
 
     // Firebase sync
@@ -414,6 +416,15 @@ export const useUserStore = create<UserState>((set, get) => ({
     },
 
     addPresetProgram: (preset) => {
+        const { templates } = get();
+
+        // Check if template with same name already exists
+        const exists = templates.some(t => t.name === preset.name);
+        if (exists) {
+            console.log('⚠️ Template already exists:', preset.name);
+            return false;
+        }
+
         const newTemplate: WorkoutTemplate = {
             id: generateId(),
             name: preset.name,
@@ -432,6 +443,18 @@ export const useUserStore = create<UserState>((set, get) => ({
             saveTemplatesToFirestore(newTemplates);
             return { templates: newTemplates };
         });
+        return true;
+    },
+
+    isPresetAdded: (presetName) => {
+        const { templates } = get();
+        return templates.some(t => t.name.startsWith(presetName));
+    },
+
+    clearAllTemplates: () => {
+        set({ templates: [] });
+        // Sync to Firebase
+        saveTemplatesToFirestore([]);
     },
 
     // Firebase sync methods

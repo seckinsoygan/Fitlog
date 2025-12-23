@@ -6,19 +6,37 @@ import {
     ScrollView,
     Pressable,
     Platform,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Dumbbell, ChevronRight, Copy, Clock, Edit3, Play, Download, Zap, Target } from 'lucide-react-native';
+import { Plus, Dumbbell, ChevronRight, Copy, Clock, Edit3, Play, Download, Zap, Target, Trash2, Check } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
 import { useUserStore, useThemeStore } from '../store';
 import { useTranslation } from '../i18n';
 
+// Web-compatible alert
+const showAlert = (title: string, message: string, buttons?: any[]) => {
+    if (Platform.OS === 'web') {
+        if (buttons && buttons.length > 1) {
+            const result = window.confirm(`${title}\n\n${message}`);
+            if (result) {
+                const confirmBtn = buttons.find(b => b.style !== 'cancel');
+                confirmBtn?.onPress?.();
+            }
+        } else {
+            window.alert(`${title}\n\n${message}`);
+        }
+    } else {
+        Alert.alert(title, message, buttons);
+    }
+};
+
 export const TemplatesScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { templates, duplicateTemplate, addPresetProgram } = useUserStore();
+    const { templates, duplicateTemplate, addPresetProgram, clearAllTemplates, isPresetAdded } = useUserStore();
     const { t } = useTranslation();
 
     // Preset programs with full daily workout plans
@@ -315,6 +333,15 @@ export const TemplatesScreen: React.FC = () => {
     const handleStartWorkout = (templateId: string) => navigation.navigate('ActiveWorkout', { templateId });
 
     const handleAddPreset = (preset: typeof presetPrograms[0]) => {
+        // Check if this preset is already added
+        if (isPresetAdded(preset.name)) {
+            showAlert(
+                t.templates.alreadyAdded || 'Zaten Eklendi',
+                t.templates.alreadyAddedMessage || 'Bu program zaten eklenmiş.',
+            );
+            return;
+        }
+
         // Her gün için ayrı bir template oluştur
         preset.days.forEach((day, dayIndex) => {
             addPresetProgram({
@@ -334,6 +361,23 @@ export const TemplatesScreen: React.FC = () => {
         });
     };
 
+    const handleClearAll = () => {
+        if (templates.length === 0) return;
+
+        showAlert(
+            t.templates.clearAll || 'Tümünü Sil',
+            t.templates.clearAllConfirm || 'Tüm programları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            [
+                { text: t.templates.cancel || 'İptal', style: 'cancel' },
+                {
+                    text: t.templates.delete || 'Sil',
+                    style: 'destructive',
+                    onPress: () => clearAllTemplates(),
+                },
+            ]
+        );
+    };
+
     const styles = createStyles(colors);
 
     return (
@@ -351,13 +395,26 @@ export const TemplatesScreen: React.FC = () => {
                             {templates.length} {t.templates.program}
                         </Typography>
                     </View>
-                    <Button
-                        title={t.templates.newButton}
-                        variant="primary"
-                        size="sm"
-                        icon={<Plus size={16} color={colors.textOnPrimary} />}
-                        onPress={handleCreateNew}
-                    />
+                    <View style={styles.headerButtons}>
+                        {templates.length > 0 && (
+                            <Pressable
+                                style={[styles.clearAllButton, { borderColor: colors.error + '50' }]}
+                                onPress={handleClearAll}
+                            >
+                                <Trash2 size={16} color={colors.error} />
+                                <Typography variant="caption" color={colors.error}>
+                                    {t.templates.clearAll}
+                                </Typography>
+                            </Pressable>
+                        )}
+                        <Button
+                            title={t.templates.newButton}
+                            variant="primary"
+                            size="sm"
+                            icon={<Plus size={16} color={colors.textOnPrimary} />}
+                            onPress={handleCreateNew}
+                        />
+                    </View>
                 </View>
 
                 {/* Preset Programs */}
@@ -387,10 +444,17 @@ export const TemplatesScreen: React.FC = () => {
                                         </Typography>
                                     </View>
                                 </View>
-                                <View style={[styles.presetAddButton, { backgroundColor: preset.color }]}>
-                                    <Download size={14} color="#fff" />
-                                    <Typography variant="caption" color="#fff">{t.templates.add}</Typography>
-                                </View>
+                                {isPresetAdded(preset.name) ? (
+                                    <View style={[styles.presetAddedButton, { backgroundColor: colors.success + '20' }]}>
+                                        <Check size={14} color={colors.success} />
+                                        <Typography variant="caption" color={colors.success}>Eklendi</Typography>
+                                    </View>
+                                ) : (
+                                    <View style={[styles.presetAddButton, { backgroundColor: preset.color }]}>
+                                        <Download size={14} color="#fff" />
+                                        <Typography variant="caption" color="#fff">{t.templates.add}</Typography>
+                                    </View>
+                                )}
                             </Pressable>
                         ))}
                     </ScrollView>
@@ -492,6 +556,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     scrollView: { flex: 1 },
     content: { padding: layout.screenPaddingHorizontal, paddingBottom: 100, gap: spacing[4] },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    headerButtons: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
+    clearAllButton: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[2], paddingHorizontal: spacing[3], borderRadius: layout.radiusSmall, borderWidth: 1, ...Platform.select({ web: { cursor: 'pointer' } }) },
     templatesList: { gap: spacing[4] },
     templateCard: { backgroundColor: colors.surface, borderRadius: layout.radiusLarge, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
     templateHeader: { flexDirection: 'row', alignItems: 'flex-start', padding: layout.cardPadding, gap: spacing[3] },
@@ -515,4 +581,5 @@ const createStyles = (colors: any) => StyleSheet.create({
     presetMeta: { flexDirection: 'row', alignItems: 'center', marginTop: spacing[1] },
     presetDaysBadge: { paddingVertical: spacing[1], paddingHorizontal: spacing[2], borderRadius: layout.radiusSmall },
     presetAddButton: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[2], paddingHorizontal: spacing[3], borderRadius: layout.radiusSmall, marginTop: spacing[1] },
+    presetAddedButton: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], paddingVertical: spacing[2], paddingHorizontal: spacing[3], borderRadius: layout.radiusSmall, marginTop: spacing[1] },
 });
