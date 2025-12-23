@@ -102,9 +102,9 @@ export const SettingsScreen: React.FC = () => {
     const isDarkMode = mode === 'dark';
 
     const handleLogout = () => {
-        showAlert('Çıkış Yap', 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?', [
-            { text: 'İptal', style: 'cancel' },
-            { text: 'Çıkış Yap', style: 'destructive', onPress: () => signOut() },
+        showAlert(t.settings.logout, t.settings.logoutConfirm, [
+            { text: t.settings.cancel, style: 'cancel' },
+            { text: t.settings.logout, style: 'destructive', onPress: () => signOut() },
         ]);
     };
 
@@ -140,7 +140,7 @@ export const SettingsScreen: React.FC = () => {
             updateProfile({ restTimerDefault: value });
             setShowRestTimerModal(false);
         } else {
-            showAlert('Hata', 'Dinlenme süresi 30-300 saniye arasında olmalıdır.');
+            showAlert(t.settings.error, t.settings.restTimeError);
         }
     };
 
@@ -150,7 +150,7 @@ export const SettingsScreen: React.FC = () => {
             updateProfile({ weeklyGoal: value });
             setShowWeeklyGoalModal(false);
         } else {
-            showAlert('Hata', 'Haftalık hedef 1-7 gün arasında olmalıdır.');
+            showAlert(t.settings.error, t.settings.weeklyGoalError);
         }
     };
 
@@ -160,7 +160,7 @@ export const SettingsScreen: React.FC = () => {
             setGoals({ dailyCalories: value });
             setShowCalorieGoalModal(false);
         } else {
-            showAlert('Hata', 'Günlük kalori 1000-6000 kcal arasında olmalıdır.');
+            showAlert(t.settings.error, t.settings.calorieGoalError);
         }
     };
 
@@ -238,7 +238,7 @@ export const SettingsScreen: React.FC = () => {
                 {/* Language Section */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        DİL / LANGUAGE
+                        {t.settings.languageSection}
                     </Typography>
                     <View style={styles.settingsGroup}>
                         <SettingItem
@@ -254,14 +254,14 @@ export const SettingsScreen: React.FC = () => {
                 {/* Workout Settings */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        ANTRENMAN
+                        {t.settings.workoutSection}
                     </Typography>
 
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<Timer size={20} color={colors.primary} />}
-                            title="Varsayılan Dinlenme Süresi"
-                            subtitle={`${profile.restTimerDefault} saniye`}
+                            title={t.settings.defaultRestTime}
+                            subtitle={`${profile.restTimerDefault} ${t.settings.seconds}`}
                             onPress={() => {
                                 setTempRestTimer(String(profile.restTimerDefault));
                                 setShowRestTimerModal(true);
@@ -270,15 +270,15 @@ export const SettingsScreen: React.FC = () => {
                         />
                         <SettingItem
                             icon={<Scale size={20} color={colors.primary} />}
-                            title="Ağırlık Birimi"
+                            title={t.settings.weightUnit}
                             subtitle={profile.weightUnit.toUpperCase()}
                             onPress={() => setShowWeightUnitModal(true)}
                             colors={colors}
                         />
                         <SettingItem
                             icon={<Target size={20} color={colors.primary} />}
-                            title="Haftalık Antrenman Hedefi"
-                            subtitle={`${profile.weeklyGoal} gün`}
+                            title={t.settings.weeklyWorkoutGoal}
+                            subtitle={`${profile.weeklyGoal} ${t.settings.days}`}
                             onPress={() => {
                                 setTempWeeklyGoal(String(profile.weeklyGoal));
                                 setShowWeeklyGoalModal(true);
@@ -291,13 +291,13 @@ export const SettingsScreen: React.FC = () => {
                 {/* Nutrition Settings */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        BESLENME
+                        {t.settings.nutritionSection}
                     </Typography>
 
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<Target size={20} color={colors.warning} />}
-                            title="Günlük Kalori Hedefi"
+                            title={t.settings.dailyCalorieGoal}
                             subtitle={`${goals.dailyCalories} kcal`}
                             onPress={() => {
                                 setTempCalorieGoal(String(goals.dailyCalories));
@@ -311,13 +311,13 @@ export const SettingsScreen: React.FC = () => {
                 {/* Notifications */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        BİLDİRİMLER
+                        {t.settings.notificationsSection}
                     </Typography>
 
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<Bell size={20} color={colors.primary} />}
-                            title="Antrenman Hatırlatıcıları"
+                            title={t.settings.workoutReminders}
                             rightComponent={
                                 <Switch
                                     value={notificationsEnabled}
@@ -334,14 +334,14 @@ export const SettingsScreen: React.FC = () => {
                 {/* Support */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        DESTEK
+                        {t.settings.supportSection}
                     </Typography>
 
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<HelpCircle size={20} color={colors.textSecondary} />}
-                            title="Yardım & SSS"
-                            onPress={() => showAlert('Yardım', 'FitLog uygulamasını kullandığınız için teşekkürler!')}
+                            title={t.settings.helpFaq}
+                            onPress={() => showAlert(t.settings.help, t.settings.helpMessage)}
                             colors={colors}
                         />
                     </View>
@@ -350,27 +350,27 @@ export const SettingsScreen: React.FC = () => {
                 {/* Data Management */}
                 <View style={styles.section}>
                     <Typography variant="label" style={styles.sectionLabel}>
-                        VERİ YÖNETİMİ
+                        {t.settings.dataSection}
                     </Typography>
 
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<Target size={20} color={colors.error} />}
-                            title="Antrenman Geçmişini Sıfırla"
-                            subtitle="Tüm antrenman kayıtlarını sil"
+                            title={t.settings.resetWorkoutHistory}
+                            subtitle={t.settings.resetWorkoutHistorySubtitle}
                             onPress={() => {
                                 showAlert(
-                                    'İlerleme Sıfırla',
-                                    'Tüm antrenman geçmişiniz ve istatistikleriniz silinecek. Bu işlem geri alınamaz.',
+                                    t.settings.resetConfirmTitle,
+                                    t.settings.resetConfirmMessage,
                                     [
-                                        { text: 'İptal', style: 'cancel' },
+                                        { text: t.settings.cancel, style: 'cancel' },
                                         {
-                                            text: 'Sıfırla',
+                                            text: t.settings.reset,
                                             style: 'destructive',
                                             onPress: async () => {
                                                 const { resetAllProgress } = await import('../store/workoutHistoryStore').then(m => m.useWorkoutHistoryStore.getState());
                                                 await resetAllProgress();
-                                                showAlert('Başarılı', 'Antrenman geçmişiniz sıfırlandı.');
+                                                showAlert(t.settings.success, t.settings.resetSuccess);
                                             }
                                         },
                                     ]
@@ -386,8 +386,8 @@ export const SettingsScreen: React.FC = () => {
                     <View style={styles.settingsGroup}>
                         <SettingItem
                             icon={<LogOut size={20} color={colors.error} />}
-                            title="Çıkış Yap"
-                            subtitle={userProfile?.email || 'Hesabından çıkış yap'}
+                            title={t.settings.logout}
+                            subtitle={userProfile?.email || ''}
                             onPress={handleLogout}
                             colors={colors}
                         />
@@ -397,7 +397,7 @@ export const SettingsScreen: React.FC = () => {
                 {/* App Info */}
                 <View style={styles.appInfo}>
                     <Typography variant="caption" color={colors.textMuted}>FitLog v1.0.0</Typography>
-                    <Typography variant="caption" color={colors.textMuted}>Made with 💪 for lifters</Typography>
+                    <Typography variant="caption" color={colors.textMuted}>{t.settings.madeWith}</Typography>
                 </View>
             </ScrollView>
 
@@ -406,7 +406,7 @@ export const SettingsScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalBox}>
                         <View style={styles.modalBoxHeader}>
-                            <H2>İsim Değiştir</H2>
+                            <H2>{t.settings.changeName}</H2>
                             <Pressable onPress={() => setShowNameModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -415,11 +415,11 @@ export const SettingsScreen: React.FC = () => {
                             style={styles.modalInput}
                             value={tempName}
                             onChangeText={setTempName}
-                            placeholder="İsminizi girin"
+                            placeholder={t.settings.enterYourName}
                             placeholderTextColor={colors.textMuted}
                             autoFocus
                         />
-                        <Button title="Kaydet" onPress={handleSaveName} variant="primary" fullWidth />
+                        <Button title={t.settings.save} onPress={handleSaveName} variant="primary" fullWidth />
                     </View>
                 </View>
             </Modal>
@@ -428,7 +428,7 @@ export const SettingsScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalBox}>
                         <View style={styles.modalBoxHeader}>
-                            <H2>Dinlenme Süresi</H2>
+                            <H2>{t.settings.restTime}</H2>
                             <Pressable onPress={() => setShowRestTimerModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -437,15 +437,15 @@ export const SettingsScreen: React.FC = () => {
                             style={styles.modalInput}
                             value={tempRestTimer}
                             onChangeText={setTempRestTimer}
-                            placeholder="Saniye (30-300)"
+                            placeholder={t.settings.secondsRange}
                             placeholderTextColor={colors.textMuted}
                             keyboardType="numeric"
                             autoFocus
                         />
                         <Typography variant="caption" color={colors.textMuted} style={{ marginBottom: spacing[3] }}>
-                            30-300 saniye arasında bir değer girin
+                            {t.settings.restTimeRange}
                         </Typography>
-                        <Button title="Kaydet" onPress={handleSaveRestTimer} variant="primary" fullWidth />
+                        <Button title={t.settings.save} onPress={handleSaveRestTimer} variant="primary" fullWidth />
                     </View>
                 </View>
             </Modal>

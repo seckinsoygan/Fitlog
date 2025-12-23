@@ -13,63 +13,65 @@ import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
 import { useUserStore, useThemeStore } from '../store';
-
-// Preset programs
-const presetPrograms = [
-    {
-        id: 'preset-ppl',
-        name: 'Push/Pull/Legs',
-        description: '3 günlük klasik bölme programı',
-        emoji: '💪',
-        color: '#FF6B6B',
-        exercises: [
-            { name: 'Bench Press', sets: 4 },
-            { name: 'Shoulder Press', sets: 3 },
-            { name: 'Triceps Pushdown', sets: 3 },
-        ],
-    },
-    {
-        id: 'preset-fullbody',
-        name: 'Full Body',
-        description: 'Haftada 3 gün tam vücut',
-        emoji: '🏋️',
-        color: '#4ECDC4',
-        exercises: [
-            { name: 'Squat', sets: 4 },
-            { name: 'Bench Press', sets: 4 },
-            { name: 'Deadlift', sets: 3 },
-        ],
-    },
-    {
-        id: 'preset-upper-lower',
-        name: 'Upper/Lower',
-        description: '4 günlük üst/alt bölme',
-        emoji: '⚡',
-        color: '#9B59B6',
-        exercises: [
-            { name: 'Bench Press', sets: 4 },
-            { name: 'Row', sets: 4 },
-            { name: 'Pull Up', sets: 3 },
-        ],
-    },
-    {
-        id: 'preset-hiit',
-        name: 'HIIT Devre',
-        description: 'Yüksek yoğunluklu interval',
-        emoji: '🔥',
-        color: '#F39C12',
-        exercises: [
-            { name: 'Burpee', sets: 4 },
-            { name: 'Mountain Climber', sets: 4 },
-            { name: 'Jump Squat', sets: 4 },
-        ],
-    },
-];
+import { useTranslation } from '../i18n';
 
 export const TemplatesScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
     const { templates, duplicateTemplate, addPresetProgram } = useUserStore();
+    const { t } = useTranslation();
+
+    // Preset programs with translated descriptions
+    const presetPrograms = [
+        {
+            id: 'preset-ppl',
+            name: 'Push/Pull/Legs',
+            description: t.templates.pplDescription,
+            emoji: '💪',
+            color: '#FF6B6B',
+            exercises: [
+                { name: 'Bench Press', sets: 4 },
+                { name: 'Shoulder Press', sets: 3 },
+                { name: 'Triceps Pushdown', sets: 3 },
+            ],
+        },
+        {
+            id: 'preset-fullbody',
+            name: 'Full Body',
+            description: t.templates.fullBodyDescription,
+            emoji: '🏋️',
+            color: '#4ECDC4',
+            exercises: [
+                { name: 'Squat', sets: 4 },
+                { name: 'Bench Press', sets: 4 },
+                { name: 'Deadlift', sets: 3 },
+            ],
+        },
+        {
+            id: 'preset-upper-lower',
+            name: 'Upper/Lower',
+            description: t.templates.upperLowerDescription,
+            emoji: '⚡',
+            color: '#9B59B6',
+            exercises: [
+                { name: 'Bench Press', sets: 4 },
+                { name: 'Row', sets: 4 },
+                { name: 'Pull Up', sets: 3 },
+            ],
+        },
+        {
+            id: 'preset-hiit',
+            name: 'HIIT Circuit',
+            description: t.templates.hiitDescription,
+            emoji: '🔥',
+            color: '#F39C12',
+            exercises: [
+                { name: 'Burpee', sets: 4 },
+                { name: 'Mountain Climber', sets: 4 },
+                { name: 'Jump Squat', sets: 4 },
+            ],
+        },
+    ];
 
     const handleCreateNew = () => navigation.navigate('TemplateEditor', { isNew: true });
     const handleEditTemplate = (templateId: string) => navigation.navigate('TemplateEditor', { templateId, isNew: false });
@@ -104,13 +106,13 @@ export const TemplatesScreen: React.FC = () => {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <H1>Programlarım</H1>
+                        <H1>{t.templates.title}</H1>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            {templates.length} program
+                            {templates.length} {t.templates.program}
                         </Typography>
                     </View>
                     <Button
-                        title="Yeni"
+                        title={t.templates.newButton}
                         variant="primary"
                         size="sm"
                         icon={<Plus size={16} color={colors.textOnPrimary} />}
@@ -120,9 +122,9 @@ export const TemplatesScreen: React.FC = () => {
 
                 {/* Preset Programs */}
                 <View style={styles.presetsSection}>
-                    <H2>⚡ Hazır Programlar</H2>
+                    <H2>{t.templates.presetPrograms}</H2>
                     <Typography variant="caption" color={colors.textSecondary} style={{ marginBottom: spacing[3] }}>
-                        Hızlıca ekle ve özelleştir
+                        {t.templates.presetHint}
                     </Typography>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsScroll}>
                         {presetPrograms.map((preset) => (
@@ -140,7 +142,7 @@ export const TemplatesScreen: React.FC = () => {
                                 </Typography>
                                 <View style={[styles.presetAddButton, { backgroundColor: preset.color }]}>
                                     <Download size={14} color="#fff" />
-                                    <Typography variant="caption" color="#fff">Ekle</Typography>
+                                    <Typography variant="caption" color="#fff">{t.templates.add}</Typography>
                                 </View>
                             </Pressable>
                         ))}
@@ -165,13 +167,13 @@ export const TemplatesScreen: React.FC = () => {
                                     )}
                                     <View style={styles.templateMeta}>
                                         <Typography variant="caption" color={colors.textMuted}>
-                                            {template.exercises.length} hareket
+                                            {template.exercises.length} {t.templates.exerciseCount}
                                         </Typography>
                                         {template.estimatedDuration && (
                                             <View style={styles.metaItem}>
                                                 <Clock size={12} color={colors.textMuted} />
                                                 <Typography variant="caption" color={colors.textMuted}>
-                                                    {template.estimatedDuration} dk
+                                                    {template.estimatedDuration} {t.dashboard.minutes}
                                                 </Typography>
                                             </View>
                                         )}
@@ -194,7 +196,7 @@ export const TemplatesScreen: React.FC = () => {
                                 ))}
                                 {template.exercises.length > 4 && (
                                     <Typography variant="caption" color={colors.textMuted} style={{ paddingLeft: spacing[4] }}>
-                                        +{template.exercises.length - 4} hareket daha
+                                        +{template.exercises.length - 4} {t.templates.moreExercises}
                                     </Typography>
                                 )}
                             </View>
@@ -203,17 +205,17 @@ export const TemplatesScreen: React.FC = () => {
                             <View style={styles.templateActions}>
                                 <Pressable style={styles.actionButton} onPress={() => handleEditTemplate(template.id)}>
                                     <Edit3 size={16} color={colors.textSecondary} />
-                                    <Typography variant="caption" color={colors.textSecondary}>Düzenle</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>{t.templates.edit}</Typography>
                                 </Pressable>
                                 <View style={styles.actionDivider} />
                                 <Pressable style={styles.actionButton} onPress={() => handleDuplicate(template.id)}>
                                     <Copy size={16} color={colors.textSecondary} />
-                                    <Typography variant="caption" color={colors.textSecondary}>Kopyala</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>{t.templates.duplicate}</Typography>
                                 </Pressable>
                                 <View style={styles.actionDivider} />
                                 <Pressable style={styles.startButton} onPress={() => handleStartWorkout(template.id)}>
                                     <Play size={16} color={colors.textOnPrimary} fill={colors.textOnPrimary} />
-                                    <Typography variant="caption" color={colors.textOnPrimary}>Başlat</Typography>
+                                    <Typography variant="caption" color={colors.textOnPrimary}>{t.templates.start}</Typography>
                                 </Pressable>
                             </View>
                         </View>
@@ -226,11 +228,11 @@ export const TemplatesScreen: React.FC = () => {
                         <View style={styles.emptyIcon}>
                             <Dumbbell size={48} color={colors.textMuted} />
                         </View>
-                        <Typography variant="h3" color={colors.textMuted}>Program Yok</Typography>
+                        <Typography variant="h3" color={colors.textMuted}>{t.templates.noTemplates}</Typography>
                         <Typography variant="body" color={colors.textMuted} style={{ textAlign: 'center' }}>
-                            İlk antrenman programınızı oluşturun
+                            {t.templates.createFirst}
                         </Typography>
-                        <Button title="Program Oluştur" variant="primary" onPress={handleCreateNew} />
+                        <Button title={t.templates.createProgram} variant="primary" onPress={handleCreateNew} />
                     </View>
                 )}
             </ScrollView>

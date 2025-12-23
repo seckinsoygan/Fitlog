@@ -26,19 +26,13 @@ import {
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
 import { useNutritionStore, useThemeStore, FoodEntry } from '../store';
+import { useTranslation } from '../i18n';
 
 const mealTypeIcons = {
     breakfast: Coffee,
     lunch: UtensilsCrossed,
     dinner: UtensilsCrossed,
     snack: Cookie,
-};
-
-const mealTypeNames = {
-    breakfast: 'Kahvaltı',
-    lunch: 'Öğle',
-    dinner: 'Akşam',
-    snack: 'Atıştırmalık',
 };
 
 export const NutritionScreen: React.FC = () => {
@@ -53,6 +47,21 @@ export const NutritionScreen: React.FC = () => {
         removeFoodEntry,
         updateWaterIntake,
     } = useNutritionStore();
+    const { t, language } = useTranslation();
+
+    // Meal type names using translations
+    const mealTypeNames = {
+        breakfast: t.nutrition.breakfast,
+        lunch: t.nutrition.lunch,
+        dinner: t.nutrition.dinner,
+        snack: t.nutrition.snack,
+    };
+
+    // Helper function to get food name from translations
+    const getFoodName = (foodKey: string): string => {
+        const foods = t.nutrition.foods as Record<string, string>;
+        return foods[foodKey] || foodKey;
+    };
 
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -94,9 +103,10 @@ export const NutritionScreen: React.FC = () => {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        if (dateStr === today.toISOString().split('T')[0]) return 'Bugün';
-        if (dateStr === yesterday.toISOString().split('T')[0]) return 'Dün';
-        return date.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
+        if (dateStr === today.toISOString().split('T')[0]) return t.nutrition.today;
+        if (dateStr === yesterday.toISOString().split('T')[0]) return t.nutrition.yesterday;
+        const locale = language === 'tr' ? 'tr-TR' : 'en-US';
+        return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
     };
 
     // Group entries by meal type
@@ -118,7 +128,7 @@ export const NutritionScreen: React.FC = () => {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <H1>Beslenme</H1>
+                        <H1>{t.nutrition.title}</H1>
                         <Typography variant="caption" color={colors.textSecondary}>
                             {formatDateLabel(selectedDate)}
                         </Typography>
@@ -196,7 +206,7 @@ export const NutritionScreen: React.FC = () => {
                         alignItems: 'center',
                     }}>
                         <Typography variant="caption" color={colors.warning}>
-                            Geçmiş tarihi görüntülüyorsunuz. Düzenleme yapılamaz.
+                            {t.nutrition.viewingPastDate}
                         </Typography>
                     </View>
                 )}
@@ -223,8 +233,8 @@ export const NutritionScreen: React.FC = () => {
                     </View>
                     <Typography variant="caption" color={colors.textMuted} style={{ textAlign: 'center' }}>
                         {goals.dailyCalories - currentNutrition.totalCalories > 0
-                            ? `${goals.dailyCalories - currentNutrition.totalCalories} kcal kaldı`
-                            : 'Hedefe ulaşıldı! 🎉'}
+                            ? `${goals.dailyCalories - currentNutrition.totalCalories} ${t.nutrition.kcalRemaining}`
+                            : t.nutrition.goalReached}
                     </Typography>
                 </View>
 
@@ -271,7 +281,7 @@ export const NutritionScreen: React.FC = () => {
                             <Droplets size={20} color={colors.info} />
                         </View>
                         <View style={styles.waterInfo}>
-                            <Typography variant="body">Su Tüketimi</Typography>
+                            <Typography variant="body">{t.nutrition.waterIntake}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>
                                 {(currentNutrition.waterIntake / 1000).toFixed(1)}L / {(goals.water / 1000).toFixed(1)}L
                             </Typography>
@@ -292,7 +302,7 @@ export const NutritionScreen: React.FC = () => {
 
                 {/* Add Food Button */}
                 <Button
-                    title="Yemek Ekle"
+                    title={t.nutrition.addFood}
                     variant="primary"
                     icon={<Plus size={18} color={colors.textOnPrimary} />}
                     onPress={() => setShowAddFoodModal(true)}
@@ -302,7 +312,7 @@ export const NutritionScreen: React.FC = () => {
                 {/* Today's Meals */}
                 {Object.keys(entriesByMeal).length > 0 && (
                     <View style={styles.mealsSection}>
-                        <Typography variant="h3">Bugünkü Öğünler</Typography>
+                        <Typography variant="h3">{t.nutrition.todaysMeals}</Typography>
 
                         {Object.entries(entriesByMeal).map(([mealType, entries]) => {
                             const Icon = mealTypeIcons[mealType as keyof typeof mealTypeIcons];
@@ -321,7 +331,7 @@ export const NutritionScreen: React.FC = () => {
                                     {entries.map((entry) => (
                                         <View key={entry.id} style={styles.foodItem}>
                                             <View style={styles.foodInfo}>
-                                                <Typography variant="body">{entry.name}</Typography>
+                                                <Typography variant="body">{getFoodName(entry.name)}</Typography>
                                                 <Typography variant="caption" color={colors.textMuted}>
                                                     {entry.calories} kcal
                                                 </Typography>
@@ -346,7 +356,7 @@ export const NutritionScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <H2>Yemek Ekle</H2>
+                            <H2>{t.nutrition.addFood}</H2>
                             <Pressable onPress={() => setShowAddFoodModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -374,7 +384,7 @@ export const NutritionScreen: React.FC = () => {
 
                         {/* Quick Foods List */}
                         <Typography variant="label" style={{ marginTop: spacing[3], color: colors.textSecondary }}>
-                            HIZLI EKLE
+                            {t.nutrition.quickAdd}
                         </Typography>
                         <ScrollView style={styles.quickFoodsList}>
                             {quickFoods.map((food) => (
@@ -383,7 +393,7 @@ export const NutritionScreen: React.FC = () => {
                                         <Apple size={18} color={colors.primary} />
                                     </View>
                                     <View style={styles.quickFoodInfo}>
-                                        <Typography variant="body">{food.name}</Typography>
+                                        <Typography variant="body">{getFoodName(food.name)}</Typography>
                                         <Typography variant="caption" color={colors.textMuted}>
                                             {food.calories} kcal • {food.servingSize}
                                         </Typography>

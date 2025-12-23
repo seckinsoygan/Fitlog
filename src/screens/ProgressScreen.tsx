@@ -12,6 +12,7 @@ import { TrendingUp, Target, Flame, Award, Calendar, Dumbbell } from 'lucide-rea
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2 } from '../components/atoms';
 import { useThemeStore, useWorkoutHistoryStore } from '../store';
+import { useTranslation } from '../i18n';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - (layout.screenPaddingHorizontal * 2);
@@ -19,6 +20,7 @@ const chartWidth = screenWidth - (layout.screenPaddingHorizontal * 2);
 export const ProgressScreen: React.FC = () => {
     const colors = useThemeStore((state) => state.colors);
     const { workoutHistory, stats, getWorkoutStats, loadWorkoutHistory } = useWorkoutHistoryStore();
+    const { t } = useTranslation();
 
     // Refresh stats when screen loads
     useEffect(() => {
@@ -81,12 +83,12 @@ export const ProgressScreen: React.FC = () => {
     const weekLabels = useMemo(() => {
         const labels: string[] = [];
         for (let i = 7; i >= 0; i--) {
-            if (i === 0) labels.push('Bu hafta');
-            else if (i === 1) labels.push('Geçen');
-            else labels.push(`${i}H`);
+            if (i === 0) labels.push(t.progress.thisWeekLabel);
+            else if (i === 1) labels.push(t.progress.lastWeekLabel);
+            else labels.push(`${i}${t.progress.weekLabel}`);
         }
         return labels.reverse();
-    }, []);
+    }, [t]);
 
     // Chart configuration
     const chartConfig = {
@@ -117,26 +119,26 @@ export const ProgressScreen: React.FC = () => {
     const statsCards = [
         {
             icon: <Flame size={24} color={colors.primary} />,
-            label: 'Toplam Antrenman',
+            label: t.progress.totalWorkouts,
             value: stats.totalWorkouts.toString(),
             color: colors.primary,
         },
         {
             icon: <Calendar size={24} color="#4ECDC4" />,
-            label: 'Bu Hafta',
+            label: t.progress.thisWeek,
             value: stats.thisWeekWorkouts.toString(),
             color: '#4ECDC4',
         },
         {
             icon: <TrendingUp size={24} color="#FF6B6B" />,
-            label: 'Toplam Volume',
+            label: t.progress.totalVolume,
             value: `${(stats.totalVolume / 1000).toFixed(1)}t`,
             color: '#FF6B6B',
         },
         {
             icon: <Target size={24} color="#9B59B6" />,
-            label: 'Ort. Süre',
-            value: `${Math.floor(stats.averageDuration / 60)}dk`,
+            label: t.progress.avgDuration,
+            value: `${Math.floor(stats.averageDuration / 60)}${t.dashboard.minutes}`,
             color: '#9B59B6',
         },
     ];
@@ -159,9 +161,9 @@ export const ProgressScreen: React.FC = () => {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <H1>İlerleme</H1>
+                    <H1>{t.progress.title}</H1>
                     <Typography variant="body" color={colors.textSecondary}>
-                        Antrenman istatistiklerin
+                        {t.progress.subtitle}
                     </Typography>
                 </View>
 
@@ -185,9 +187,9 @@ export const ProgressScreen: React.FC = () => {
                 {/* Weekly Workouts Chart */}
                 <View style={styles.chartCard}>
                     <View style={styles.chartHeader}>
-                        <H2>Haftalık Antrenman</H2>
+                        <H2>{t.progress.weeklyWorkouts}</H2>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            Son 8 hafta
+                            {t.progress.last8Weeks}
                         </Typography>
                     </View>
                     <BarChart
@@ -213,9 +215,9 @@ export const ProgressScreen: React.FC = () => {
                 {/* Volume Progress Chart */}
                 <View style={styles.chartCard}>
                     <View style={styles.chartHeader}>
-                        <H2>Toplam Volume</H2>
+                        <H2>{t.progress.totalVolume}</H2>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            Ton (1000kg) bazında
+                            {t.progress.volumeInTons}
                         </Typography>
                     </View>
                     <LineChart
@@ -238,7 +240,7 @@ export const ProgressScreen: React.FC = () => {
                     <View style={styles.chartHeader}>
                         <View style={styles.prHeader}>
                             <Award size={24} color={colors.warning} />
-                            <H2>Kişisel Rekorlar</H2>
+                            <H2>{t.progress.personalRecords}</H2>
                         </View>
                     </View>
 
@@ -254,7 +256,7 @@ export const ProgressScreen: React.FC = () => {
                                         {pr.weight}kg
                                     </Typography>
                                     <Typography variant="caption" color={colors.textSecondary}>
-                                        × {pr.reps} tekrar
+                                        × {pr.reps} {t.progress.reps}
                                     </Typography>
                                 </View>
                             </View>
@@ -263,7 +265,7 @@ export const ProgressScreen: React.FC = () => {
                         <View style={styles.emptyState}>
                             <Award size={48} color={colors.textMuted} />
                             <Typography variant="body" color={colors.textSecondary} style={{ textAlign: 'center' }}>
-                                Henüz kişisel rekor bulunmuyor.{'\n'}Antrenman yaparak rekorlarını kır!
+                                {t.progress.noRecordsYet}{'\n'}{t.progress.breakRecords}
                             </Typography>
                         </View>
                     )}
@@ -278,17 +280,17 @@ export const ProgressScreen: React.FC = () => {
                                 {stats.thisWeekWorkouts || 0}
                             </Typography>
                             <Typography variant="caption" color={colors.textSecondary}>
-                                Bu hafta antrenman
+                                {t.progress.workoutsThisWeek}
                             </Typography>
                         </View>
                     </View>
                     <View style={styles.motivationText}>
                         <Typography variant="body" color={colors.textSecondary}>
                             {stats.thisWeekWorkouts >= 5
-                                ? '🔥 Müthiş gidiyorsun! Hedefini aştın!'
+                                ? t.progress.motivation5
                                 : stats.thisWeekWorkouts >= 3
-                                    ? '💪 Harika! Hedefe yaklaşıyorsun!'
-                                    : '🎯 Hadi, bu hafta hedefine ulaş!'}
+                                    ? t.progress.motivation3
+                                    : t.progress.motivationDefault}
                         </Typography>
                     </View>
                 </View>

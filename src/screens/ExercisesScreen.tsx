@@ -17,6 +17,7 @@ import { Typography, H1, Button } from '../components/atoms';
 import { useExerciseLibraryStore, useWorkoutStore, useThemeStore } from '../store';
 import { Exercise } from '../types';
 import { ExerciseWithVideo } from '../store/exerciseLibraryStore';
+import { useTranslation } from '../i18n';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -25,6 +26,7 @@ export const ExercisesScreen: React.FC = () => {
     const route = useRoute<any>();
     const colors = useThemeStore((state) => state.colors);
     const selectMode = route.params?.selectMode ?? false;
+    const { t } = useTranslation();
 
     const {
         searchQuery,
@@ -39,6 +41,18 @@ export const ExercisesScreen: React.FC = () => {
 
     const filteredExercises = getFilteredExercises();
     const muscleGroups = getMuscleGroups();
+
+    // Helper functions to get translated names
+    const getMuscleGroupDisplay = (muscleGroup: string): string => {
+        const muscleGroupsDisplay = t.exercises.muscleGroupsDisplay as Record<string, string>;
+        return muscleGroupsDisplay[muscleGroup] || muscleGroup;
+    };
+
+    const getEquipmentDisplay = (equipment?: string): string => {
+        if (!equipment) return '';
+        const equipmentDisplay = t.exercises.equipmentDisplay as Record<string, string>;
+        return equipmentDisplay[equipment] || equipment;
+    };
 
     const handleExerciseSelect = (exercise: ExerciseWithVideo) => {
         if (selectMode && activeWorkout) {
@@ -78,7 +92,7 @@ export const ExercisesScreen: React.FC = () => {
             <View style={styles.exerciseInfo}>
                 <Typography variant="body">{item.name}</Typography>
                 <Typography variant="caption" color={colors.textSecondary}>
-                    {item.muscleGroup} • {item.equipment}
+                    {getMuscleGroupDisplay(item.muscleGroup)} • {getEquipmentDisplay(item.equipment)}
                 </Typography>
             </View>
             <View style={styles.exerciseActions}>
@@ -109,7 +123,7 @@ export const ExercisesScreen: React.FC = () => {
                         <ArrowLeft size={24} color={colors.textPrimary} />
                     </Pressable>
                 )}
-                <H1 style={styles.headerTitle}>{selectMode ? 'Hareket Seç' : 'Hareketler'}</H1>
+                <H1 style={styles.headerTitle}>{selectMode ? t.exercises.selectExercise : t.exercises.title}</H1>
                 {!selectMode && (
                     <View style={styles.exerciseCount}>
                         <Typography variant="caption" color={colors.primary}>
@@ -124,7 +138,7 @@ export const ExercisesScreen: React.FC = () => {
                 <Search size={18} color={colors.textMuted} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Hareket ara..."
+                    placeholder={t.exercises.searchPlaceholder}
                     placeholderTextColor={colors.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -149,7 +163,7 @@ export const ExercisesScreen: React.FC = () => {
                             variant="buttonSmall"
                             color={!selectedMuscleGroup ? colors.textOnPrimary : colors.textSecondary}
                         >
-                            Tümü
+                            {t.exercises.all}
                         </Typography>
                     </Pressable>
                     {muscleGroups.map((group) => (
@@ -165,7 +179,7 @@ export const ExercisesScreen: React.FC = () => {
                                 variant="buttonSmall"
                                 color={selectedMuscleGroup === group ? colors.textOnPrimary : colors.textSecondary}
                             >
-                                {group}
+                                {getMuscleGroupDisplay(group)}
                             </Typography>
                         </Pressable>
                     ))}

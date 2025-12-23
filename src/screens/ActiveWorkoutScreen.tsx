@@ -9,8 +9,8 @@ import { layout, spacing } from '../theme/spacing';
 import { Typography, Button } from '../components/atoms';
 import { Header, RestTimer } from '../components/molecules';
 import { ExerciseCard } from '../components/organisms';
-import { useWorkoutData, useTimer } from '../hooks';
-import { useWorkoutHistoryStore } from '../store';
+import { useWorkoutData } from '../hooks';
+import { useWorkoutHistoryStore, useWorkoutStore } from '../store';
 
 // Web-compatible alert function
 const showAlert = (
@@ -51,10 +51,40 @@ export const ActiveWorkoutScreen: React.FC = () => {
         deleteSet,
     } = useWorkoutData();
 
-    // Workout duration timer
-    const { time: workoutDuration, formatTime, start: startTimer, isRunning: timerRunning } = useTimer({
-        autoStart: false,
-    });
+    // Get persisted workout start time from store
+    const { getElapsedWorkoutTime } = useWorkoutStore();
+
+    // Calculate elapsed time from persisted start time
+    const [elapsedTime, setElapsedTime] = useState(0);
+
+    // Update elapsed time every second based on persisted start time
+    React.useEffect(() => {
+        if (!isWorkoutActive) {
+            setElapsedTime(0);
+            return;
+        }
+
+        // Initial calculation
+        setElapsedTime(getElapsedWorkoutTime());
+
+        const interval = setInterval(() => {
+            setElapsedTime(getElapsedWorkoutTime());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isWorkoutActive, getElapsedWorkoutTime]);
+
+    // Format time helper
+    const formatTime = (seconds: number): string => {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hrs > 0) {
+            return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Start workout from template if coming from navigation
     React.useEffect(() => {
@@ -65,13 +95,6 @@ export const ActiveWorkoutScreen: React.FC = () => {
             }
         }
     }, [route.params?.templateId, isWorkoutActive, createWorkoutFromTemplate, startWorkout]);
-
-    // Start timer when workout becomes active
-    React.useEffect(() => {
-        if (isWorkoutActive && !timerRunning) {
-            startTimer();
-        }
-    }, [isWorkoutActive, timerRunning, startTimer]);
 
     const handleSetComplete = useCallback(
         (exerciseId: string, setId: string) => {
@@ -129,7 +152,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                                 templateId: activeWorkout.templateId,
                                 templateName: activeWorkout.templateName,
                                 exercises: completedExercises,
-                                duration: workoutDuration,
+                                duration: elapsedTime,
                                 totalVolume,
                                 totalSets,
                                 totalReps,
@@ -142,7 +165,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 },
             ]
         );
-    }, [endWorkout, navigation, activeWorkout, workoutDuration]);
+    }, [endWorkout, navigation, activeWorkout, elapsedTime]);
 
     const handleCancelWorkout = useCallback(() => {
         showAlert(
@@ -196,7 +219,7 @@ export const ActiveWorkoutScreen: React.FC = () => {
                 title={activeWorkout.name}
                 onBack={handleGoBack}
                 showTimer={true}
-                timerValue={formatTime()}
+                timerValue={formatTime(elapsedTime)}
                 rightComponent={
                     <Button
                         title="Bitir"
@@ -230,17 +253,6 @@ export const ActiveWorkoutScreen: React.FC = () => {
                     </View>
                 )}
 
-                {/* Rest Timer */}
-                {showRestTimer && (
-                    <RestTimer
-                        isVisible={showRestTimer}
-                        onClose={handleRestComplete}
-                        onComplete={handleRestComplete}
-                        initialTime={90}
-                        autoStart={true}
-                    />
-                )}
-
                 {/* Exercise List */}
                 {activeWorkout.exercises.map((exercise) => (
                     <ExerciseCard
@@ -269,6 +281,17 @@ export const ActiveWorkoutScreen: React.FC = () => {
                     style={styles.addExerciseButton}
                 />
             </ScrollView>
+
+            {/* Rest Timer - Fixed overlay on top */}
+            {showRestTimer && (
+                <RestTimer
+                    isVisible={showRestTimer}
+                    onClose={handleRestComplete}
+                    onComplete={handleRestComplete}
+                    initialTime={90}
+                    autoStart={true}
+                />
+            )}
         </SafeAreaView>
     );
 };

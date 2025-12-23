@@ -27,6 +27,7 @@ import { useNavigation } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, Button } from '../components/atoms';
 import { useAuthStore, useThemeStore, useUserStore, useNutritionStore } from '../store';
+import { useTranslation } from '../i18n';
 
 
 // Web-compatible alert
@@ -54,6 +55,7 @@ export const ProfileEditScreen: React.FC = () => {
     const { userProfile, updateUserProfile, isLoading } = useAuthStore();
     const { profile, updateProfile } = useUserStore();
     const { goals, setGoals } = useNutritionStore();
+    const { t } = useTranslation();
 
     // Form state - load from existing profile
     const [displayName, setDisplayName] = useState(userProfile?.displayName || profile.name);
@@ -104,10 +106,10 @@ export const ProfileEditScreen: React.FC = () => {
                 water: (parseFloat(waterGoal) || 3) * 1000, // Convert to ml
             });
 
-            showAlert('Başarılı', 'Profiliniz güncellendi!');
+            showAlert(t.profileEdit.success, t.profileEdit.profileUpdated);
             navigation.goBack();
         } catch (error) {
-            showAlert('Hata', 'Profil güncellenirken bir hata oluştu.');
+            showAlert(t.profileEdit.error, t.profileEdit.updateError);
         }
     };
 
@@ -153,7 +155,7 @@ export const ProfileEditScreen: React.FC = () => {
                     <ArrowLeft size={24} color={colors.textPrimary} />
                 </Pressable>
                 <View style={dynamicStyles.headerTitle}>
-                    <Typography variant="h2">Profili Düzenle</Typography>
+                    <Typography variant="h2">{t.profileEdit.title}</Typography>
                 </View>
                 <Pressable
                     style={[dynamicStyles.saveButton, isLoading && { opacity: 0.5 }]}
@@ -184,7 +186,7 @@ export const ProfileEditScreen: React.FC = () => {
                         </View>
                     </Pressable>
                     <Typography variant="caption" color={colors.textMuted}>
-                        Avatarı değiştirmek için dokun
+                        {t.profileEdit.tapToChangeAvatar}
                     </Typography>
 
                     {/* Emoji Avatar Picker */}
@@ -222,55 +224,55 @@ export const ProfileEditScreen: React.FC = () => {
                 {/* Personal Info Section */}
                 <View style={dynamicStyles.section}>
                     <Typography variant="label" color={colors.textSecondary} style={dynamicStyles.sectionLabel}>
-                        KİŞİSEL BİLGİLER
+                        {t.profileEdit.personalInfo}
                     </Typography>
                     <View style={dynamicStyles.sectionCard}>
-                        {renderInputField('İsim', displayName, setDisplayName, <User size={18} color={colors.primary} />, 'Adınızı girin')}
-                        {renderInputField('Yaş', age, setAge, <Calendar size={18} color={colors.primary} />, '25', 'numeric', 'yaş')}
+                        {renderInputField(t.profileEdit.name, displayName, setDisplayName, <User size={18} color={colors.primary} />, t.profileEdit.enterName)}
+                        {renderInputField(t.profileEdit.age, age, setAge, <Calendar size={18} color={colors.primary} />, '25', 'numeric', t.profileEdit.years)}
                     </View>
                 </View>
 
                 {/* Body Metrics Section */}
                 <View style={dynamicStyles.section}>
                     <Typography variant="label" color={colors.textSecondary} style={dynamicStyles.sectionLabel}>
-                        VÜCUT ÖLÇÜLERİ
+                        {t.profileEdit.bodyMetrics}
                     </Typography>
                     <View style={dynamicStyles.sectionCard}>
-                        {renderInputField('Kilo', weight, setWeight, <Scale size={18} color={colors.warning} />, '75', 'numeric', 'kg')}
-                        {renderInputField('Boy', height, setHeight, <Ruler size={18} color={colors.warning} />, '175', 'numeric', 'cm')}
-                        {renderInputField('Hedef Kilo', targetWeight, setTargetWeight, <Target size={18} color={colors.success} />, '72', 'numeric', 'kg')}
+                        {renderInputField(t.profileEdit.weight, weight, setWeight, <Scale size={18} color={colors.warning} />, '75', 'numeric', 'kg')}
+                        {renderInputField(t.profileEdit.height, height, setHeight, <Ruler size={18} color={colors.warning} />, '175', 'numeric', 'cm')}
+                        {renderInputField(t.profileEdit.targetWeight, targetWeight, setTargetWeight, <Target size={18} color={colors.success} />, '72', 'numeric', 'kg')}
                     </View>
                 </View>
 
                 {/* Workout Goals Section */}
                 <View style={dynamicStyles.section}>
                     <Typography variant="label" color={colors.textSecondary} style={dynamicStyles.sectionLabel}>
-                        ANTRENMAN HEDEFLERİ
+                        {t.profileEdit.workoutGoals}
                     </Typography>
                     <View style={dynamicStyles.sectionCard}>
-                        {renderInputField('Haftalık Antrenman', weeklyGoal, setWeeklyGoal, <Activity size={18} color={colors.info} />, '4', 'numeric', 'gün')}
-                        {renderInputField('Dinlenme Süresi', restTimer, setRestTimer, <Activity size={18} color={colors.info} />, '90', 'numeric', 'sn')}
-                        {renderInputField('Günlük Adım', dailySteps, setDailySteps, <Activity size={18} color={colors.info} />, '10000', 'numeric', 'adım')}
+                        {renderInputField(t.profileEdit.weeklyWorkout, weeklyGoal, setWeeklyGoal, <Activity size={18} color={colors.info} />, '4', 'numeric', t.profileEdit.daysUnit)}
+                        {renderInputField(t.profileEdit.restTime, restTimer, setRestTimer, <Activity size={18} color={colors.info} />, '90', 'numeric', t.profileEdit.secUnit)}
+                        {renderInputField(t.profileEdit.dailySteps, dailySteps, setDailySteps, <Activity size={18} color={colors.info} />, '10000', 'numeric', t.profileEdit.stepsUnit)}
                     </View>
                 </View>
 
                 {/* Nutrition Goals Section */}
                 <View style={dynamicStyles.section}>
                     <Typography variant="label" color={colors.textSecondary} style={dynamicStyles.sectionLabel}>
-                        BESLENME HEDEFLERİ
+                        {t.profileEdit.nutritionGoals}
                     </Typography>
                     <View style={dynamicStyles.sectionCard}>
-                        {renderInputField('Günlük Kalori', dailyCalories, setDailyCalories, <Target size={18} color={colors.error} />, '2500', 'numeric', 'kcal')}
-                        {renderInputField('Protein', proteinGoal, setProteinGoal, <Target size={18} color={colors.primary} />, '180', 'numeric', 'g')}
-                        {renderInputField('Karbonhidrat', carbsGoal, setCarbsGoal, <Target size={18} color={colors.warning} />, '250', 'numeric', 'g')}
-                        {renderInputField('Yağ', fatGoal, setFatGoal, <Target size={18} color={colors.info} />, '80', 'numeric', 'g')}
-                        {renderInputField('Su', waterGoal, setWaterGoal, <Target size={18} color={colors.info} />, '3', 'numeric', 'litre')}
+                        {renderInputField(t.profileEdit.dailyCalories, dailyCalories, setDailyCalories, <Target size={18} color={colors.error} />, '2500', 'numeric', 'kcal')}
+                        {renderInputField(t.profileEdit.protein, proteinGoal, setProteinGoal, <Target size={18} color={colors.primary} />, '180', 'numeric', 'g')}
+                        {renderInputField(t.profileEdit.carbs, carbsGoal, setCarbsGoal, <Target size={18} color={colors.warning} />, '250', 'numeric', 'g')}
+                        {renderInputField(t.profileEdit.fat, fatGoal, setFatGoal, <Target size={18} color={colors.info} />, '80', 'numeric', 'g')}
+                        {renderInputField(t.profileEdit.water, waterGoal, setWaterGoal, <Target size={18} color={colors.info} />, '3', 'numeric', t.profileEdit.litersUnit)}
                     </View>
                 </View>
 
                 {/* Save Button */}
                 <Button
-                    title={isLoading ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+                    title={isLoading ? t.profileEdit.saving : t.profileEdit.saveChanges}
                     variant="primary"
                     fullWidth
                     onPress={handleSave}

@@ -11,7 +11,7 @@ import {
     Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Trash2, X, Check, Dumbbell } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, X, Check, Dumbbell, ChevronUp, ChevronDown, GripVertical } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H2, Button } from '../components/atoms';
@@ -86,6 +86,20 @@ export const TemplateEditorScreen: React.FC = () => {
         setExercises(exercises.map((e) => e.id === exerciseId ? { ...e, defaultSets: Math.max(1, Math.min(10, sets)) } : e));
     };
 
+    const handleMoveUp = (index: number) => {
+        if (index === 0) return;
+        const newExercises = [...exercises];
+        [newExercises[index - 1], newExercises[index]] = [newExercises[index], newExercises[index - 1]];
+        setExercises(newExercises);
+    };
+
+    const handleMoveDown = (index: number) => {
+        if (index === exercises.length - 1) return;
+        const newExercises = [...exercises];
+        [newExercises[index], newExercises[index + 1]] = [newExercises[index + 1], newExercises[index]];
+        setExercises(newExercises);
+    };
+
     const styles = createStyles(colors);
 
     return (
@@ -146,6 +160,23 @@ export const TemplateEditorScreen: React.FC = () => {
                     ) : (
                         exercises.map((exercise, index) => (
                             <View key={exercise.id} style={styles.exerciseItem}>
+                                {/* Reorder Buttons */}
+                                <View style={styles.reorderButtons}>
+                                    <Pressable
+                                        style={[styles.reorderButton, index === 0 && styles.reorderButtonDisabled]}
+                                        onPress={() => handleMoveUp(index)}
+                                        disabled={index === 0}
+                                    >
+                                        <ChevronUp size={16} color={index === 0 ? colors.textMuted : colors.textSecondary} />
+                                    </Pressable>
+                                    <Pressable
+                                        style={[styles.reorderButton, index === exercises.length - 1 && styles.reorderButtonDisabled]}
+                                        onPress={() => handleMoveDown(index)}
+                                        disabled={index === exercises.length - 1}
+                                    >
+                                        <ChevronDown size={16} color={index === exercises.length - 1 ? colors.textMuted : colors.textSecondary} />
+                                    </Pressable>
+                                </View>
                                 <View style={styles.exerciseOrder}>
                                     <Typography variant="caption" color={colors.primary}>{index + 1}</Typography>
                                 </View>
@@ -246,7 +277,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     exercisesSection: { gap: spacing[3] },
     exercisesHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     emptyState: { alignItems: 'center', padding: spacing[8], backgroundColor: colors.surface, borderRadius: layout.radiusMedium, gap: spacing[3] },
-    exerciseItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: layout.radiusMedium, padding: spacing[3], gap: spacing[3], borderWidth: 1, borderColor: colors.border },
+    exerciseItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: layout.radiusMedium, padding: spacing[3], gap: spacing[2], borderWidth: 1, borderColor: colors.border },
+    reorderButtons: { flexDirection: 'column', gap: 2 },
+    reorderButton: { width: 24, height: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceLight, borderRadius: 4 },
+    reorderButtonDisabled: { opacity: 0.4 },
     exerciseOrder: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
     exerciseInfo: { flex: 1, gap: 2 },
     setsControl: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },

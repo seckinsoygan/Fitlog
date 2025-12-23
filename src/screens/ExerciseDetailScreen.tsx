@@ -14,6 +14,7 @@ import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, Button } from '../components/atoms';
 import { useExerciseLibraryStore, useThemeStore } from '../store';
 import Svg, { Path, Circle, Ellipse, G, Text as SvgText } from 'react-native-svg';
+import { useTranslation } from '../i18n';
 
 // Muscle group mappings for anatomy highlight
 const muscleGroupMappings: Record<string, string[]> = {
@@ -29,7 +30,7 @@ const muscleGroupMappings: Record<string, string[]> = {
 };
 
 // Simplified Human Anatomy SVG Component
-const AnatomyDiagram: React.FC<{ muscleGroup: string; colors: any }> = ({ muscleGroup, colors }) => {
+const AnatomyDiagram: React.FC<{ muscleGroup: string; colors: any; t: any }> = ({ muscleGroup, colors, t }) => {
     const activeMuscles = muscleGroupMappings[muscleGroup] || [];
 
     const getMuscleColor = (muscle: string) => {
@@ -42,7 +43,7 @@ const AnatomyDiagram: React.FC<{ muscleGroup: string; colors: any }> = ({ muscle
         <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: spacing[4] }}>
             {/* Front View */}
             <View style={{ alignItems: 'center' }}>
-                <Typography variant="caption" color={colors.textMuted} style={{ marginBottom: spacing[2] }}>ÖN</Typography>
+                <Typography variant="caption" color={colors.textMuted} style={{ marginBottom: spacing[2] }}>{t.exercises.detail.front}</Typography>
                 <Svg width={120} height={200} viewBox="0 0 120 200">
                     {/* Head */}
                     <Circle cx="60" cy="20" r="15" fill={colors.surface} stroke={getStrokeColor()} strokeWidth="1" />
@@ -88,7 +89,7 @@ const AnatomyDiagram: React.FC<{ muscleGroup: string; colors: any }> = ({ muscle
 
             {/* Back View */}
             <View style={{ alignItems: 'center' }}>
-                <Typography variant="caption" color={colors.textMuted} style={{ marginBottom: spacing[2] }}>ARKA</Typography>
+                <Typography variant="caption" color={colors.textMuted} style={{ marginBottom: spacing[2] }}>{t.exercises.detail.back}</Typography>
                 <Svg width={120} height={200} viewBox="0 0 120 200">
                     {/* Head */}
                     <Circle cx="60" cy="20" r="15" fill={colors.surface} stroke={getStrokeColor()} strokeWidth="1" />
@@ -138,14 +139,26 @@ export const ExerciseDetailScreen: React.FC = () => {
     const route = useRoute<any>();
     const colors = useThemeStore((state) => state.colors);
     const exerciseId = route.params?.exerciseId;
+    const { t } = useTranslation();
 
     const { getExerciseById } = useExerciseLibraryStore();
     const exercise = getExerciseById(exerciseId);
 
+    // Helper functions to get translated names
+    const getMuscleGroupDisplay = (muscleGroup: string): string => {
+        const muscleGroups = t.exercises.muscleGroupsDisplay as Record<string, string>;
+        return muscleGroups[muscleGroup] || muscleGroup;
+    };
+
+    const getEquipmentDisplay = (equipment: string): string => {
+        const equipmentDisplay = t.exercises.equipmentDisplay as Record<string, string>;
+        return equipmentDisplay[equipment] || equipment;
+    };
+
     if (!exercise) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-                <Typography variant="body">Egzersiz bulunamadı</Typography>
+                <Typography variant="body">{t.exercises.detail.notFound}</Typography>
             </SafeAreaView>
         );
     }
@@ -161,7 +174,7 @@ export const ExerciseDetailScreen: React.FC = () => {
                 </Pressable>
                 <View style={dynamicStyles.headerTitle}>
                     <Typography variant="h2" numberOfLines={1}>{exercise.name}</Typography>
-                    <Typography variant="caption" color={colors.textSecondary}>{exercise.muscleGroup}</Typography>
+                    <Typography variant="caption" color={colors.textSecondary}>{getMuscleGroupDisplay(exercise.muscleGroup)}</Typography>
                 </View>
             </View>
 
@@ -170,13 +183,13 @@ export const ExerciseDetailScreen: React.FC = () => {
                 <View style={dynamicStyles.anatomySection}>
                     <View style={dynamicStyles.anatomyHeader}>
                         <Activity size={18} color={colors.primary} />
-                        <Typography variant="label" color={colors.textSecondary}>ÇALIŞTIRILAN KASLAR</Typography>
+                        <Typography variant="label" color={colors.textSecondary}>{t.exercises.detail.targetMuscles}</Typography>
                     </View>
-                    <AnatomyDiagram muscleGroup={exercise.muscleGroup} colors={colors} />
+                    <AnatomyDiagram muscleGroup={exercise.muscleGroup} colors={colors} t={t} />
                     <View style={dynamicStyles.muscleTag}>
                         <Zap size={14} color={colors.primary} />
                         <Typography variant="body" color={colors.primary} style={{ fontWeight: '600' }}>
-                            {exercise.muscleGroup}
+                            {getMuscleGroupDisplay(exercise.muscleGroup)}
                         </Typography>
                     </View>
                 </View>
@@ -187,57 +200,57 @@ export const ExerciseDetailScreen: React.FC = () => {
                         <View style={[dynamicStyles.infoIcon, { backgroundColor: colors.primary + '20' }]}>
                             <Target size={20} color={colors.primary} />
                         </View>
-                        <Typography variant="label" color={colors.textSecondary}>KAS GRUBU</Typography>
-                        <Typography variant="h3">{exercise.muscleGroup}</Typography>
+                        <Typography variant="label" color={colors.textSecondary}>{t.exercises.detail.muscleGroup}</Typography>
+                        <Typography variant="h3">{getMuscleGroupDisplay(exercise.muscleGroup)}</Typography>
                     </View>
 
                     <View style={dynamicStyles.infoCard}>
                         <View style={[dynamicStyles.infoIcon, { backgroundColor: colors.info + '20' }]}>
                             <Settings2 size={20} color={colors.info} />
                         </View>
-                        <Typography variant="label" color={colors.textSecondary}>EKİPMAN</Typography>
-                        <Typography variant="h3">{exercise.equipment}</Typography>
+                        <Typography variant="label" color={colors.textSecondary}>{t.exercises.detail.equipmentLabel}</Typography>
+                        <Typography variant="h3">{getEquipmentDisplay(exercise.equipment || '')}</Typography>
                     </View>
                 </View>
 
                 {/* Tips Section */}
                 <View style={dynamicStyles.tipsSection}>
-                    <Typography variant="label" color={colors.textSecondary}>İPUÇLARI</Typography>
+                    <Typography variant="label" color={colors.textSecondary}>{t.exercises.detail.tips}</Typography>
                     <View style={dynamicStyles.tipsList}>
                         <View style={dynamicStyles.tipItem}>
                             <View style={dynamicStyles.tipDot} />
-                            <Typography variant="body">Hareketi kontrollü ve yavaş yapın</Typography>
+                            <Typography variant="body">{t.exercises.detail.tip1}</Typography>
                         </View>
                         <View style={dynamicStyles.tipItem}>
                             <View style={dynamicStyles.tipDot} />
-                            <Typography variant="body">Nefes alıp vermeye dikkat edin</Typography>
+                            <Typography variant="body">{t.exercises.detail.tip2}</Typography>
                         </View>
                         <View style={dynamicStyles.tipItem}>
                             <View style={dynamicStyles.tipDot} />
-                            <Typography variant="body">Formunuzu koruyun, ağırlığı azaltın</Typography>
+                            <Typography variant="body">{t.exercises.detail.tip3}</Typography>
                         </View>
                         <View style={dynamicStyles.tipItem}>
                             <View style={dynamicStyles.tipDot} />
-                            <Typography variant="body">Dinlenme sürelerine dikkat edin</Typography>
+                            <Typography variant="body">{t.exercises.detail.tip4}</Typography>
                         </View>
                     </View>
                 </View>
 
                 {/* Suggested Sets & Reps */}
                 <View style={dynamicStyles.suggestedSection}>
-                    <Typography variant="label" color={colors.textSecondary}>ÖNERİLEN</Typography>
+                    <Typography variant="label" color={colors.textSecondary}>{t.exercises.detail.suggested}</Typography>
                     <View style={dynamicStyles.suggestedGrid}>
                         <View style={dynamicStyles.suggestedCard}>
                             <Typography variant="h2" color={colors.primary}>3-4</Typography>
-                            <Typography variant="caption" color={colors.textMuted}>SET</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>{t.exercises.detail.sets}</Typography>
                         </View>
                         <View style={dynamicStyles.suggestedCard}>
                             <Typography variant="h2" color={colors.warning}>8-12</Typography>
-                            <Typography variant="caption" color={colors.textMuted}>TEKRAR</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>{t.exercises.detail.reps}</Typography>
                         </View>
                         <View style={dynamicStyles.suggestedCard}>
                             <Typography variant="h2" color={colors.info}>60-90</Typography>
-                            <Typography variant="caption" color={colors.textMuted}>SANİYE DİNLENME</Typography>
+                            <Typography variant="caption" color={colors.textMuted}>{t.exercises.detail.restSeconds}</Typography>
                         </View>
                     </View>
                 </View>
@@ -257,6 +270,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     headerTitle: { flex: 1, gap: 2 },
     scrollView: { flex: 1 },
     content: { padding: layout.screenPaddingHorizontal, paddingBottom: 100, gap: spacing[5] },
+    animationSection: { backgroundColor: colors.surface, borderRadius: layout.radiusLarge, padding: layout.cardPadding, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
     anatomySection: { backgroundColor: colors.surface, borderRadius: layout.radiusLarge, padding: layout.cardPadding, borderWidth: 1, borderColor: colors.border },
     anatomyHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginBottom: spacing[2] },
     muscleTag: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing[2], backgroundColor: colors.primaryMuted, paddingVertical: spacing[2], paddingHorizontal: spacing[4], borderRadius: layout.radiusFull, alignSelf: 'center' },

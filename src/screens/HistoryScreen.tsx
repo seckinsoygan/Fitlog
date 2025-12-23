@@ -7,6 +7,7 @@ import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
 import { StatCard } from '../components/molecules';
 import { useThemeStore, useWorkoutHistoryStore } from '../store';
+import { useTranslation } from '../i18n';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -31,8 +32,10 @@ export const HistoryScreen: React.FC = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const { t, language } = useTranslation();
 
     const { workoutHistory, stats, deleteWorkout, isLoading } = useWorkoutHistoryStore();
+    const locale = language === 'en' ? 'en-US' : 'tr-TR';
 
     // Group workouts by month
     const groupedHistory = useMemo(() => {
@@ -42,7 +45,7 @@ export const HistoryScreen: React.FC = () => {
             const date = workout.createdAt instanceof Date
                 ? workout.createdAt
                 : new Date(workout.createdAt || Date.now());
-            const monthKey = date.toLocaleDateString('tr-TR', {
+            const monthKey = date.toLocaleDateString(locale, {
                 year: 'numeric',
                 month: 'long',
             });
@@ -77,7 +80,7 @@ export const HistoryScreen: React.FC = () => {
 
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
-        return `${mins} dk`;
+        return `${mins} ${t.history.min}`;
     };
 
     const handleWorkoutPress = (workout: any) => {
@@ -87,12 +90,12 @@ export const HistoryScreen: React.FC = () => {
 
     const handleDeleteWorkout = (workoutId: string) => {
         showAlert(
-            'Antrenmanı Sil',
-            'Bu antrenmanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            t.history.deleteWorkout,
+            t.history.deleteConfirm,
             [
-                { text: 'İptal', style: 'cancel' },
+                { text: t.history.cancel, style: 'cancel' },
                 {
-                    text: 'Sil',
+                    text: t.history.delete,
                     style: 'destructive',
                     onPress: async () => {
                         await deleteWorkout(workoutId);
@@ -115,7 +118,7 @@ export const HistoryScreen: React.FC = () => {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <H1>Geçmiş</H1>
+                    <H1>{t.history.title}</H1>
                     <View style={styles.viewToggle}>
                         <Pressable
                             style={[
@@ -147,22 +150,22 @@ export const HistoryScreen: React.FC = () => {
                 {/* All Time Stats */}
                 <View style={styles.statsGrid}>
                     <StatCard
-                        title="TOPLAM"
+                        title={t.history.total}
                         value={allTimeStats.totalWorkouts}
-                        subtitle="antrenman"
+                        subtitle={t.history.workouts}
                         icon={<Dumbbell size={16} color={colors.primary} />}
                         variant="primary"
                     />
                     <StatCard
-                        title="HACİM"
+                        title={t.history.volume}
                         value={`${Math.round(allTimeStats.totalVolume / 1000)}k`}
-                        subtitle="kg toplam"
+                        subtitle={t.history.kgTotal}
                         icon={<BarChart3 size={16} color={colors.textSecondary} />}
                     />
                     <StatCard
-                        title="ORT. SÜRE"
+                        title={t.history.avgDuration}
                         value={allTimeStats.avgDuration}
-                        subtitle="dakika"
+                        subtitle={t.history.minutes}
                         icon={<Clock size={16} color={colors.textSecondary} />}
                     />
                 </View>
@@ -189,10 +192,10 @@ export const HistoryScreen: React.FC = () => {
                                         </View>
                                         <View style={styles.workoutInfo}>
                                             <Typography variant="body">
-                                                {workout.templateName || 'Antrenman'}
+                                                {workout.templateName || t.history.workout}
                                             </Typography>
                                             <Typography variant="caption" color={colors.textMuted}>
-                                                {workoutDate.toLocaleDateString('tr-TR', {
+                                                {workoutDate.toLocaleDateString(locale, {
                                                     day: 'numeric',
                                                     month: 'short',
                                                     weekday: 'short',
@@ -201,7 +204,7 @@ export const HistoryScreen: React.FC = () => {
                                         </View>
                                         <View style={styles.workoutStats}>
                                             <Typography variant="caption" color={colors.textSecondary}>
-                                                {workout.totalSets || 0} set
+                                                {workout.totalSets || 0} {t.history.set}
                                             </Typography>
                                             <Typography variant="caption" color={colors.textMuted}>
                                                 {Math.round((workout.totalVolume || 0) / 1000)}k kg
@@ -217,10 +220,10 @@ export const HistoryScreen: React.FC = () => {
                     <View style={styles.emptyState}>
                         <Calendar size={48} color={colors.textMuted} />
                         <Typography variant="body" color={colors.textMuted}>
-                            Henüz kayıtlı antrenman yok
+                            {t.history.noWorkouts}
                         </Typography>
                         <Typography variant="caption" color={colors.textMuted}>
-                            Antrenman tamamladığınızda burada görünecek
+                            {t.history.noWorkoutsSubtitle}
                         </Typography>
                     </View>
                 )}
@@ -231,7 +234,7 @@ export const HistoryScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <H2>{selectedWorkout?.templateName || 'Antrenman Detayı'}</H2>
+                            <H2>{selectedWorkout?.templateName || t.history.workoutDetails}</H2>
                             <Pressable onPress={() => setShowDetailModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -242,12 +245,12 @@ export const HistoryScreen: React.FC = () => {
                                 {/* Workout Info */}
                                 <View style={styles.detailRow}>
                                     <View style={styles.detailItem}>
-                                        <Typography variant="caption" color={colors.textMuted}>TARİH</Typography>
+                                        <Typography variant="caption" color={colors.textMuted}>{t.history.date}</Typography>
                                         <Typography variant="body">
                                             {(selectedWorkout.createdAt instanceof Date
                                                 ? selectedWorkout.createdAt
                                                 : new Date(selectedWorkout.createdAt || Date.now())
-                                            ).toLocaleDateString('tr-TR', {
+                                            ).toLocaleDateString(locale, {
                                                 day: 'numeric',
                                                 month: 'long',
                                                 year: 'numeric',
@@ -255,39 +258,72 @@ export const HistoryScreen: React.FC = () => {
                                         </Typography>
                                     </View>
                                     <View style={styles.detailItem}>
-                                        <Typography variant="caption" color={colors.textMuted}>SÜRE</Typography>
+                                        <Typography variant="caption" color={colors.textMuted}>{t.history.duration}</Typography>
                                         <Typography variant="body">{formatDuration(selectedWorkout.duration || 0)}</Typography>
                                     </View>
                                 </View>
 
                                 <View style={styles.detailRow}>
                                     <View style={styles.detailItem}>
-                                        <Typography variant="caption" color={colors.textMuted}>TOPLAM SET</Typography>
+                                        <Typography variant="caption" color={colors.textMuted}>{t.history.totalSets}</Typography>
                                         <Typography variant="body">{selectedWorkout.totalSets || 0}</Typography>
                                     </View>
                                     <View style={styles.detailItem}>
-                                        <Typography variant="caption" color={colors.textMuted}>HACİM</Typography>
+                                        <Typography variant="caption" color={colors.textMuted}>{t.history.volume}</Typography>
                                         <Typography variant="body">{Math.round((selectedWorkout.totalVolume || 0))} kg</Typography>
                                     </View>
                                 </View>
 
                                 {/* Exercises */}
                                 <Typography variant="label" color={colors.textSecondary} style={{ marginTop: spacing[4] }}>
-                                    HAREKETLER
+                                    {t.history.exercises}
                                 </Typography>
                                 {selectedWorkout.exercises?.map((exercise: any, index: number) => (
-                                    <View key={index} style={styles.exerciseItem}>
-                                        <Typography variant="body">{exercise.exerciseName}</Typography>
-                                        <Typography variant="caption" color={colors.textMuted}>
-                                            {exercise.sets?.length || 0} set • {exercise.totalVolume || 0} kg
-                                        </Typography>
+                                    <View key={index} style={styles.exerciseCard}>
+                                        <View style={styles.exerciseHeader}>
+                                            <View style={styles.exerciseIconSmall}>
+                                                <Dumbbell size={16} color={colors.primary} />
+                                            </View>
+                                            <View style={styles.exerciseHeaderInfo}>
+                                                <Typography variant="body" style={{ fontWeight: '600' }}>
+                                                    {exercise.exerciseName}
+                                                </Typography>
+                                                <Typography variant="caption" color={colors.textMuted}>
+                                                    {exercise.muscleGroup} • {exercise.sets?.length || 0} {t.history.set} • {exercise.totalVolume || 0} kg
+                                                </Typography>
+                                            </View>
+                                        </View>
+                                        {/* Set Details */}
+                                        <View style={styles.setsContainer}>
+                                            {exercise.sets?.map((set: any, setIndex: number) => (
+                                                <View key={setIndex} style={styles.setRow}>
+                                                    <View style={[styles.setNumber, set.isCompleted && styles.setNumberCompleted]}>
+                                                        <Typography variant="caption" color={set.isCompleted ? colors.textOnPrimary : colors.textMuted}>
+                                                            {set.setNumber || setIndex + 1}
+                                                        </Typography>
+                                                    </View>
+                                                    <View style={styles.setDetails}>
+                                                        <Typography variant="body" style={{ fontWeight: '500' }}>
+                                                            {set.weight} kg
+                                                        </Typography>
+                                                        <Typography variant="caption" color={colors.textMuted}>×</Typography>
+                                                        <Typography variant="body" style={{ fontWeight: '500' }}>
+                                                            {set.reps} {t.history.reps}
+                                                        </Typography>
+                                                    </View>
+                                                    <Typography variant="caption" color={colors.textMuted}>
+                                                        {set.weight * set.reps} kg
+                                                    </Typography>
+                                                </View>
+                                            ))}
+                                        </View>
                                     </View>
                                 ))}
 
                                 {/* Delete Button */}
                                 <View style={{ marginTop: spacing[6], marginBottom: spacing[4] }}>
                                     <Button
-                                        title="Antrenmanı Sil"
+                                        title={t.history.deleteWorkout}
                                         variant="secondary"
                                         fullWidth
                                         icon={<Trash2 size={18} color={colors.error} />}
@@ -419,5 +455,62 @@ const createStyles = (colors: any) => StyleSheet.create({
         borderRadius: layout.radiusMedium,
         marginTop: spacing[2],
         gap: 2,
+    },
+    exerciseCard: {
+        backgroundColor: colors.surface,
+        borderRadius: layout.radiusMedium,
+        marginTop: spacing[2],
+        padding: spacing[3],
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    exerciseHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[3],
+        marginBottom: spacing[2],
+    },
+    exerciseIconSmall: {
+        width: 32,
+        height: 32,
+        borderRadius: layout.radiusSmall,
+        backgroundColor: colors.primaryMuted,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    exerciseHeaderInfo: {
+        flex: 1,
+        gap: 2,
+    },
+    setsContainer: {
+        marginTop: spacing[2],
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        paddingTop: spacing[2],
+    },
+    setRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: spacing[2],
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border + '40',
+        gap: spacing[3],
+    },
+    setNumber: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: colors.surfaceLight,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    setNumberCompleted: {
+        backgroundColor: colors.success,
+    },
+    setDetails: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[2],
     },
 });

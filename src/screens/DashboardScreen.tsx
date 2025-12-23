@@ -321,7 +321,7 @@ export const DashboardScreen: React.FC = () => {
                             ))}
                             {todayTemplate.exercises.length > 3 && (
                                 <Typography variant="caption" color={colors.textMuted}>
-                                    +{todayTemplate.exercises.length - 3} hareket daha
+                                    +{todayTemplate.exercises.length - 3} {t.dashboard.moreExercises}
                                 </Typography>
                             )}
                         </View>
@@ -358,7 +358,7 @@ export const DashboardScreen: React.FC = () => {
                         <View style={styles.statInfo}>
                             <Typography variant="h3">{thisWeekWorkouts}/{profile.weeklyGoal}</Typography>
                             <Typography variant="caption" color={colors.textMuted}>
-                                bu hafta
+                                {t.dashboard.thisWeek}
                             </Typography>
                         </View>
                         <View style={styles.progressBar}>
@@ -503,7 +503,7 @@ export const DashboardScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} Antrenmanları</H2>
+                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} {t.dashboard.workouts}</H2>
                             <Pressable onPress={() => setShowDayHistoryModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -522,7 +522,7 @@ export const DashboardScreen: React.FC = () => {
                                             </View>
                                             <View style={styles.historyInfo}>
                                                 <Typography variant="body">
-                                                    {workout.templateName || 'Antrenman'}
+                                                    {workout.templateName || t.dashboard.workout}
                                                 </Typography>
                                                 <Typography variant="caption" color={colors.textMuted}>
                                                     {workoutDate.toLocaleDateString('tr-TR', {
@@ -540,7 +540,7 @@ export const DashboardScreen: React.FC = () => {
                                                     </Typography>
                                                 </View>
                                                 <Typography variant="caption" color={colors.textSecondary}>
-                                                    {workout.totalSets || 0} set
+                                                    {workout.totalSets || 0} {t.dashboard.set}
                                                 </Typography>
                                             </View>
                                         </View>
@@ -550,7 +550,7 @@ export const DashboardScreen: React.FC = () => {
                                 <View style={styles.emptyHistory}>
                                     <Calendar size={48} color={colors.textMuted} />
                                     <Typography variant="body" color={colors.textMuted}>
-                                        Bu gün antrenman yapılmamış
+                                        {t.dashboard.noWorkoutThisDay}
                                     </Typography>
                                 </View>
                             )}
@@ -565,7 +565,7 @@ export const DashboardScreen: React.FC = () => {
                     <View style={[styles.modalContent, { maxHeight: '90%' }]}>
                         <View style={styles.modalHeader}>
                             <View>
-                                <H2>Haftalık Program</H2>
+                                <H2>{t.programEditor.weeklyProgram}</H2>
                                 <Typography variant="caption" color={colors.textSecondary}>
                                     {activeProgram?.name || 'Program'}
                                 </Typography>
@@ -579,7 +579,7 @@ export const DashboardScreen: React.FC = () => {
                         <View style={styles.dragHint}>
                             <ArrowLeftRight size={16} color={colors.info} />
                             <Typography variant="caption" color={colors.textSecondary}>
-                                Sürükleyerek günleri değiştirin, tıklayarak program atayın
+                                {t.programEditor.dragHint}
                             </Typography>
                         </View>
 
@@ -621,7 +621,7 @@ export const DashboardScreen: React.FC = () => {
                                                 {isToday && (
                                                     <View style={styles.todayBadgeSmall}>
                                                         <Typography variant="caption" color={colors.textOnPrimary}>
-                                                            BUGÜN
+                                                            {t.common.today.toUpperCase()}
                                                         </Typography>
                                                     </View>
                                                 )}
@@ -632,7 +632,7 @@ export const DashboardScreen: React.FC = () => {
                                                     <View style={styles.restDayContent}>
                                                         <Moon size={16} color={colors.textMuted} />
                                                         <Typography variant="bodySmall" color={colors.textMuted}>
-                                                            Dinlenme Günü
+                                                            {t.programEditor.restDay}
                                                         </Typography>
                                                     </View>
                                                 ) : template ? (
@@ -643,14 +643,14 @@ export const DashboardScreen: React.FC = () => {
                                                         <View style={{ flex: 1 }}>
                                                             <Typography variant="body" numberOfLines={1}>{template.name}</Typography>
                                                             <Typography variant="caption" color={colors.textMuted}>
-                                                                {template.exercises.length} hareket
+                                                                {template.exercises.length} {t.dashboard.exercises}
                                                             </Typography>
                                                         </View>
                                                     </View>
                                                 ) : (
                                                     <View style={styles.emptyDayContent}>
                                                         <Typography variant="bodySmall" color={colors.textMuted}>
-                                                            Program atanmadı - tıkla ekle
+                                                            {t.programEditor.noProgram}
                                                         </Typography>
                                                     </View>
                                                 )}
@@ -709,7 +709,7 @@ export const DashboardScreen: React.FC = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.templatePickerContent}>
                         <View style={styles.modalHeader}>
-                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} için Program</H2>
+                            <H2>{selectedDayIndex !== null ? getDayName(selectedDayIndex) : ''} {t.programEditor.selectTemplate}</H2>
                             <Pressable onPress={() => setShowTemplatePickerModal(false)}>
                                 <X size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -725,9 +725,9 @@ export const DashboardScreen: React.FC = () => {
                                     <Moon size={20} color={colors.textMuted} />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <Typography variant="body">Dinlenme Günü</Typography>
+                                    <Typography variant="body">{t.programEditor.restDay}</Typography>
                                     <Typography variant="caption" color={colors.textMuted}>
-                                        Bu gün antrenman yok
+                                        {t.programEditor.noWorkoutToday}
                                     </Typography>
                                 </View>
                             </Pressable>
@@ -745,7 +745,7 @@ export const DashboardScreen: React.FC = () => {
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="body">{template.name}</Typography>
                                         <Typography variant="caption" color={colors.textMuted}>
-                                            {template.exercises.length} hareket • ~{template.estimatedDuration || 60} dk
+                                            {template.exercises.length} {t.dashboard.exercises} • ~{template.estimatedDuration || 60} {t.dashboard.minutes}
                                         </Typography>
                                     </View>
                                 </Pressable>

@@ -72,54 +72,101 @@ const createEmptyDailyNutrition = (date: string): DailyNutrition => ({
     waterIntake: 0,
 });
 
-// Common foods database - Expanded with Turkish and international foods
+// Common foods database - with i18n key support
 const defaultQuickFoods: Omit<FoodEntry, 'id' | 'timestamp'>[] = [
-    // Kahvaltılık
-    { name: 'Yumurta (1 adet)', calories: 78, macros: { protein: 6, carbs: 0.6, fat: 5 }, servingSize: '1 adet', quantity: 1, mealType: 'breakfast' },
-    { name: 'Yulaf Ezmesi (40g)', calories: 150, macros: { protein: 5, carbs: 27, fat: 2.5 }, servingSize: '40g', quantity: 1, mealType: 'breakfast' },
-    { name: 'Tam Buğday Ekmek (1 dilim)', calories: 80, macros: { protein: 4, carbs: 15, fat: 1 }, servingSize: '1 dilim', quantity: 1, mealType: 'breakfast' },
-    { name: 'Beyaz Peynir (30g)', calories: 80, macros: { protein: 5, carbs: 1, fat: 6 }, servingSize: '30g', quantity: 1, mealType: 'breakfast' },
-    { name: 'Süt (1 bardak)', calories: 120, macros: { protein: 8, carbs: 12, fat: 5 }, servingSize: '250ml', quantity: 1, mealType: 'breakfast' },
-    { name: 'Yoğurt (100g)', calories: 60, macros: { protein: 3.5, carbs: 4, fat: 3 }, servingSize: '100g', quantity: 1, mealType: 'breakfast' },
-    { name: 'Menemen (1 porsiyon)', calories: 250, macros: { protein: 12, carbs: 8, fat: 18 }, servingSize: '1 porsiyon', quantity: 1, mealType: 'breakfast' },
-    { name: 'Simit (1 adet)', calories: 280, macros: { protein: 9, carbs: 50, fat: 5 }, servingSize: '1 adet', quantity: 1, mealType: 'breakfast' },
+    // Kahvaltılık / Breakfast
+    { name: 'egg', calories: 78, macros: { protein: 6, carbs: 0.6, fat: 5 }, servingSize: '1', quantity: 1, mealType: 'breakfast' },
+    { name: 'oatmeal', calories: 150, macros: { protein: 5, carbs: 27, fat: 2.5 }, servingSize: '40g', quantity: 1, mealType: 'breakfast' },
+    { name: 'wheatBread', calories: 80, macros: { protein: 4, carbs: 15, fat: 1 }, servingSize: '1', quantity: 1, mealType: 'breakfast' },
+    { name: 'whiteCheese', calories: 80, macros: { protein: 5, carbs: 1, fat: 6 }, servingSize: '30g', quantity: 1, mealType: 'breakfast' },
+    { name: 'milk', calories: 120, macros: { protein: 8, carbs: 12, fat: 5 }, servingSize: '250ml', quantity: 1, mealType: 'breakfast' },
+    { name: 'yogurt', calories: 60, macros: { protein: 3.5, carbs: 4, fat: 3 }, servingSize: '100g', quantity: 1, mealType: 'breakfast' },
+    { name: 'menemen', calories: 250, macros: { protein: 12, carbs: 8, fat: 18 }, servingSize: '1', quantity: 1, mealType: 'breakfast' },
+    { name: 'simit', calories: 280, macros: { protein: 9, carbs: 50, fat: 5 }, servingSize: '1', quantity: 1, mealType: 'breakfast' },
+    { name: 'pancakes', calories: 220, macros: { protein: 6, carbs: 35, fat: 7 }, servingSize: '2', quantity: 1, mealType: 'breakfast' },
+    { name: 'granola', calories: 200, macros: { protein: 5, carbs: 30, fat: 8 }, servingSize: '50g', quantity: 1, mealType: 'breakfast' },
+    { name: 'frenchToast', calories: 280, macros: { protein: 8, carbs: 32, fat: 12 }, servingSize: '2', quantity: 1, mealType: 'breakfast' },
 
-    // Protein Kaynakları
-    { name: 'Tavuk Göğsü (100g)', calories: 165, macros: { protein: 31, carbs: 0, fat: 3.6 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Dana Kıyma (100g)', calories: 250, macros: { protein: 26, carbs: 0, fat: 15 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
-    { name: 'Somon (100g)', calories: 208, macros: { protein: 20, carbs: 0, fat: 13 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
-    { name: 'Ton Balığı Konserve (100g)', calories: 116, macros: { protein: 26, carbs: 0, fat: 1 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Köfte (100g)', calories: 280, macros: { protein: 18, carbs: 5, fat: 20 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    // Protein Kaynakları / Proteins
+    { name: 'chickenBreast', calories: 165, macros: { protein: 31, carbs: 0, fat: 3.6 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'groundBeef', calories: 250, macros: { protein: 26, carbs: 0, fat: 15 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'salmon', calories: 208, macros: { protein: 20, carbs: 0, fat: 13 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'tunaCanned', calories: 116, macros: { protein: 26, carbs: 0, fat: 1 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'meatballs', calories: 280, macros: { protein: 18, carbs: 5, fat: 20 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'grillChicken', calories: 248, macros: { protein: 46, carbs: 0, fat: 5.4 }, servingSize: '150g', quantity: 1, mealType: 'lunch' },
+    { name: 'steak', calories: 375, macros: { protein: 38, carbs: 0, fat: 24 }, servingSize: '150g', quantity: 1, mealType: 'dinner' },
+    { name: 'turkeyBreast', calories: 135, macros: { protein: 30, carbs: 0, fat: 1 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'shrimpGrilled', calories: 99, macros: { protein: 24, carbs: 0, fat: 0.3 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'eggs3', calories: 234, macros: { protein: 18, carbs: 1.8, fat: 15 }, servingSize: '3', quantity: 1, mealType: 'breakfast' },
 
-    // Karbonhidrat Kaynakları
-    { name: 'Pilav (100g)', calories: 130, macros: { protein: 2.7, carbs: 28, fat: 0.3 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Bulgur Pilavı (100g)', calories: 120, macros: { protein: 4, carbs: 25, fat: 0.5 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Makarna (100g pişmiş)', calories: 131, macros: { protein: 5, carbs: 25, fat: 1 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Patates (100g)', calories: 77, macros: { protein: 2, carbs: 17, fat: 0.1 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    // Karbonhidrat / Carbs
+    { name: 'rice', calories: 130, macros: { protein: 2.7, carbs: 28, fat: 0.3 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'bulgur', calories: 120, macros: { protein: 4, carbs: 25, fat: 0.5 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'pasta', calories: 131, macros: { protein: 5, carbs: 25, fat: 1 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'potato', calories: 77, macros: { protein: 2, carbs: 17, fat: 0.1 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'sweetPotato', calories: 86, macros: { protein: 1.6, carbs: 20, fat: 0.1 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'quinoa', calories: 120, macros: { protein: 4.4, carbs: 21, fat: 1.9 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'couscous', calories: 112, macros: { protein: 3.8, carbs: 23, fat: 0.2 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
 
-    // Sebzeler
-    { name: 'Brokoli (100g)', calories: 34, macros: { protein: 2.8, carbs: 7, fat: 0.4 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Ispanak (100g)', calories: 23, macros: { protein: 2.9, carbs: 3.6, fat: 0.4 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
-    { name: 'Çoban Salata (1 porsiyon)', calories: 80, macros: { protein: 2, carbs: 8, fat: 5 }, servingSize: '1 porsiyon', quantity: 1, mealType: 'lunch' },
+    // Sebzeler / Vegetables
+    { name: 'broccoli', calories: 34, macros: { protein: 2.8, carbs: 7, fat: 0.4 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'spinach', calories: 23, macros: { protein: 2.9, carbs: 3.6, fat: 0.4 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'shepherdSalad', calories: 80, macros: { protein: 2, carbs: 8, fat: 5 }, servingSize: '1', quantity: 1, mealType: 'lunch' },
+    { name: 'mixedVegetables', calories: 65, macros: { protein: 2.5, carbs: 13, fat: 0.5 }, servingSize: '150g', quantity: 1, mealType: 'dinner' },
+    { name: 'greenSalad', calories: 20, macros: { protein: 1.5, carbs: 3, fat: 0.2 }, servingSize: '100g', quantity: 1, mealType: 'lunch' },
+    { name: 'grilledVegetables', calories: 100, macros: { protein: 3, carbs: 15, fat: 4 }, servingSize: '150g', quantity: 1, mealType: 'dinner' },
 
-    // Meyveler
-    { name: 'Muz (1 adet)', calories: 105, macros: { protein: 1.3, carbs: 27, fat: 0.4 }, servingSize: '1 adet', quantity: 1, mealType: 'snack' },
-    { name: 'Elma (1 adet)', calories: 95, macros: { protein: 0.5, carbs: 25, fat: 0.3 }, servingSize: '1 adet', quantity: 1, mealType: 'snack' },
-    { name: 'Portakal (1 adet)', calories: 62, macros: { protein: 1.2, carbs: 15, fat: 0.2 }, servingSize: '1 adet', quantity: 1, mealType: 'snack' },
+    // Meyveler / Fruits
+    { name: 'banana', calories: 105, macros: { protein: 1.3, carbs: 27, fat: 0.4 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'apple', calories: 95, macros: { protein: 0.5, carbs: 25, fat: 0.3 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'orange', calories: 62, macros: { protein: 1.2, carbs: 15, fat: 0.2 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'strawberries', calories: 32, macros: { protein: 0.7, carbs: 7.7, fat: 0.3 }, servingSize: '100g', quantity: 1, mealType: 'snack' },
+    { name: 'blueberries', calories: 57, macros: { protein: 0.7, carbs: 14, fat: 0.3 }, servingSize: '100g', quantity: 1, mealType: 'snack' },
+    { name: 'watermelon', calories: 60, macros: { protein: 1.2, carbs: 15, fat: 0.3 }, servingSize: '200g', quantity: 1, mealType: 'snack' },
+    { name: 'grapes', calories: 69, macros: { protein: 0.7, carbs: 18, fat: 0.2 }, servingSize: '100g', quantity: 1, mealType: 'snack' },
+    { name: 'pineapple', calories: 50, macros: { protein: 0.5, carbs: 13, fat: 0.1 }, servingSize: '100g', quantity: 1, mealType: 'snack' },
 
-    // Atıştırmalıklar & Takviyeler
-    { name: 'Protein Shake', calories: 120, macros: { protein: 24, carbs: 3, fat: 1 }, servingSize: '1 scoop', quantity: 1, mealType: 'snack' },
-    { name: 'Badem (30g)', calories: 170, macros: { protein: 6, carbs: 6, fat: 15 }, servingSize: '30g', quantity: 1, mealType: 'snack' },
-    { name: 'Protein Bar', calories: 200, macros: { protein: 20, carbs: 22, fat: 6 }, servingSize: '1 adet', quantity: 1, mealType: 'snack' },
+    // Atıştırmalıklar & Takviyeler / Snacks & Supplements
+    { name: 'proteinShake', calories: 120, macros: { protein: 24, carbs: 3, fat: 1 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'almonds', calories: 170, macros: { protein: 6, carbs: 6, fat: 15 }, servingSize: '30g', quantity: 1, mealType: 'snack' },
+    { name: 'proteinBar', calories: 200, macros: { protein: 20, carbs: 22, fat: 6 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'greekYogurt', calories: 150, macros: { protein: 15, carbs: 6, fat: 7 }, servingSize: '150g', quantity: 1, mealType: 'snack' },
+    { name: 'cottageCheese', calories: 98, macros: { protein: 11, carbs: 3.4, fat: 4.3 }, servingSize: '100g', quantity: 1, mealType: 'snack' },
+    { name: 'peanutButter', calories: 188, macros: { protein: 8, carbs: 6, fat: 16 }, servingSize: '32g', quantity: 1, mealType: 'snack' },
+    { name: 'mixedNuts', calories: 180, macros: { protein: 5, carbs: 7, fat: 16 }, servingSize: '30g', quantity: 1, mealType: 'snack' },
+    { name: 'darkChocolate', calories: 110, macros: { protein: 1.5, carbs: 10, fat: 7 }, servingSize: '20g', quantity: 1, mealType: 'snack' },
+    { name: 'riceKek', calories: 70, macros: { protein: 1.4, carbs: 14, fat: 1 }, servingSize: '2', quantity: 1, mealType: 'snack' },
+    { name: 'hummus', calories: 80, macros: { protein: 4, carbs: 6, fat: 5 }, servingSize: '50g', quantity: 1, mealType: 'snack' },
 
-    // Türk Yemekleri
-    { name: 'Lahmacun (1 adet)', calories: 210, macros: { protein: 8, carbs: 32, fat: 6 }, servingSize: '1 adet', quantity: 1, mealType: 'dinner' },
-    { name: 'Döner (100g)', calories: 217, macros: { protein: 19, carbs: 0.5, fat: 15 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
-    { name: 'Mercimek Çorbası (1 kase)', calories: 140, macros: { protein: 8, carbs: 22, fat: 2 }, servingSize: '1 kase', quantity: 1, mealType: 'lunch' },
+    // Türk Yemekleri / Turkish Foods
+    { name: 'lahmacun', calories: 210, macros: { protein: 8, carbs: 32, fat: 6 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'doner', calories: 217, macros: { protein: 19, carbs: 0.5, fat: 15 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'lentilSoup', calories: 140, macros: { protein: 8, carbs: 22, fat: 2 }, servingSize: '1', quantity: 1, mealType: 'lunch' },
+    { name: 'pide', calories: 350, macros: { protein: 14, carbs: 45, fat: 12 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'iskender', calories: 650, macros: { protein: 35, carbs: 45, fat: 38 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'manti', calories: 400, macros: { protein: 18, carbs: 50, fat: 14 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'kofte', calories: 280, macros: { protein: 18, carbs: 5, fat: 20 }, servingSize: '100g', quantity: 1, mealType: 'dinner' },
+    { name: 'dolma', calories: 180, macros: { protein: 4, carbs: 22, fat: 8 }, servingSize: '5', quantity: 1, mealType: 'lunch' },
+    { name: 'borek', calories: 300, macros: { protein: 8, carbs: 28, fat: 18 }, servingSize: '100g', quantity: 1, mealType: 'breakfast' },
+    { name: 'baklava', calories: 330, macros: { protein: 5, carbs: 40, fat: 18 }, servingSize: '2', quantity: 1, mealType: 'snack' },
 
-    // İçecekler
-    { name: 'Ayran (1 bardak)', calories: 65, macros: { protein: 3, carbs: 5, fat: 3.5 }, servingSize: '250ml', quantity: 1, mealType: 'lunch' },
-    { name: 'Türk Kahvesi', calories: 5, macros: { protein: 0.3, carbs: 0.7, fat: 0.2 }, servingSize: '1 fincan', quantity: 1, mealType: 'snack' },
+    // İçecekler / Beverages
+    { name: 'ayran', calories: 65, macros: { protein: 3, carbs: 5, fat: 3.5 }, servingSize: '250ml', quantity: 1, mealType: 'lunch' },
+    { name: 'turkishCoffee', calories: 5, macros: { protein: 0.3, carbs: 0.7, fat: 0.2 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'greenTea', calories: 0, macros: { protein: 0, carbs: 0, fat: 0 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'blackCoffee', calories: 2, macros: { protein: 0.3, carbs: 0, fat: 0 }, servingSize: '1', quantity: 1, mealType: 'snack' },
+    { name: 'freshJuice', calories: 110, macros: { protein: 1, carbs: 26, fat: 0.5 }, servingSize: '250ml', quantity: 1, mealType: 'snack' },
+    { name: 'smoothie', calories: 180, macros: { protein: 5, carbs: 35, fat: 3 }, servingSize: '300ml', quantity: 1, mealType: 'snack' },
+
+    // Uluslararası / International
+    { name: 'sushi', calories: 200, macros: { protein: 9, carbs: 38, fat: 1 }, servingSize: '6', quantity: 1, mealType: 'dinner' },
+    { name: 'pizza', calories: 270, macros: { protein: 12, carbs: 33, fat: 10 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'burger', calories: 540, macros: { protein: 25, carbs: 40, fat: 30 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'sandwich', calories: 350, macros: { protein: 15, carbs: 38, fat: 15 }, servingSize: '1', quantity: 1, mealType: 'lunch' },
+    { name: 'caesarSalad', calories: 320, macros: { protein: 18, carbs: 12, fat: 24 }, servingSize: '1', quantity: 1, mealType: 'lunch' },
+    { name: 'friedRice', calories: 250, macros: { protein: 6, carbs: 40, fat: 8 }, servingSize: '150g', quantity: 1, mealType: 'dinner' },
+    { name: 'curry', calories: 400, macros: { protein: 20, carbs: 30, fat: 22 }, servingSize: '1', quantity: 1, mealType: 'dinner' },
+    { name: 'tacos', calories: 340, macros: { protein: 14, carbs: 28, fat: 18 }, servingSize: '2', quantity: 1, mealType: 'dinner' },
 ];
 
 const defaultGoals: NutritionGoals = {
