@@ -163,6 +163,8 @@ export const en = {
         alreadyAddedMessage: 'This program is already added. Remove existing one to add again.',
         clearAll: 'Clear All',
         clearAllConfirm: 'Are you sure you want to delete all programs? This action cannot be undone.',
+        deleteTemplate: 'Delete Program',
+        deleteTemplateConfirm: 'Are you sure you want to delete this program?',
         cancel: 'Cancel',
         delete: 'Delete',
     },

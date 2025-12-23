@@ -1,5 +1,5 @@
 // FitLog - Templates Screen with Dynamic Theme
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     View,
     StyleSheet,
@@ -7,6 +7,8 @@ import {
     Pressable,
     Platform,
     Alert,
+    Animated,
+    PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, Dumbbell, ChevronRight, Copy, Clock, Edit3, Play, Download, Zap, Target, Trash2, Check } from 'lucide-react-native';
@@ -33,10 +35,88 @@ const showAlert = (title: string, message: string, buttons?: any[]) => {
     }
 };
 
+// Swipeable Template Card Component
+interface SwipeableTemplateCardProps {
+    children: React.ReactNode;
+    onDelete: () => void;
+    colors: any;
+}
+
+const SwipeableTemplateCard: React.FC<SwipeableTemplateCardProps> = ({ children, onDelete, colors }) => {
+    const translateX = useRef(new Animated.Value(0)).current;
+    const deleteWidth = 80;
+
+    const panResponder = PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+            return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 10;
+        },
+        onPanResponderMove: (_, gestureState) => {
+            if (gestureState.dx < 0) {
+                translateX.setValue(Math.max(gestureState.dx, -deleteWidth));
+            }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+            if (gestureState.dx < -40) {
+                Animated.spring(translateX, {
+                    toValue: -deleteWidth,
+                    useNativeDriver: true,
+                }).start();
+            } else {
+                Animated.spring(translateX, {
+                    toValue: 0,
+                    useNativeDriver: true,
+                }).start();
+            }
+        },
+    });
+
+    const closeSwipe = () => {
+        Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    return (
+        <View style={{ position: 'relative', overflow: 'hidden', borderRadius: layout.radiusLarge, marginBottom: spacing[2] }}>
+            {/* Delete Button Behind */}
+            <Pressable
+                style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: deleteWidth,
+                    backgroundColor: colors.error,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderTopRightRadius: layout.radiusLarge,
+                    borderBottomRightRadius: layout.radiusLarge,
+                }}
+                onPress={() => {
+                    closeSwipe();
+                    onDelete();
+                }}
+            >
+                <Trash2 size={24} color="#fff" />
+                <Typography variant="caption" color="#fff" style={{ marginTop: 4 }}>Sil</Typography>
+            </Pressable>
+            {/* Card Content */}
+            <Animated.View
+                {...panResponder.panHandlers}
+                style={{ transform: [{ translateX }] }}
+            >
+                {children}
+            </Animated.View>
+        </View>
+    );
+};
+
 export const TemplatesScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { templates, duplicateTemplate, addPresetProgram, clearAllTemplates, isPresetAdded } = useUserStore();
+    const { templates, duplicateTemplate, deleteTemplate, addPresetProgram, clearAllTemplates, isPresetAdded } = useUserStore();
     const { t } = useTranslation();
 
     // Preset programs with full daily workout plans
@@ -463,73 +543,92 @@ export const TemplatesScreen: React.FC = () => {
                 {/* Templates List */}
                 <View style={styles.templatesList}>
                     {templates.map((template) => (
-                        <View key={template.id} style={styles.templateCard}>
-                            {/* Template Header */}
-                            <View style={styles.templateHeader}>
-                                <View style={[styles.templateIcon, { backgroundColor: (template.color || colors.primary) + '20' }]}>
-                                    <Dumbbell size={24} color={template.color || colors.primary} />
+                        <SwipeableTemplateCard
+                            key={template.id}
+                            colors={colors}
+                            onDelete={() => {
+                                showAlert(
+                                    t.templates.deleteTemplate || 'Programı Sil',
+                                    t.templates.deleteTemplateConfirm || `"${template.name}" programını silmek istediğinize emin misiniz?`,
+                                    [
+                                        { text: t.templates.cancel, style: 'cancel' },
+                                        {
+                                            text: t.templates.delete,
+                                            style: 'destructive',
+                                            onPress: () => deleteTemplate(template.id),
+                                        },
+                                    ]
+                                );
+                            }}
+                        >
+                            <View style={styles.templateCard}>
+                                {/* Template Header */}
+                                <View style={styles.templateHeader}>
+                                    <View style={[styles.templateIcon, { backgroundColor: (template.color || colors.primary) + '20' }]}>
+                                        <Dumbbell size={24} color={template.color || colors.primary} />
+                                    </View>
+                                    <View style={styles.templateInfo}>
+                                        <Typography variant="h3">{template.name}</Typography>
+                                        {template.description && (
+                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                                                {template.description}
+                                            </Typography>
+                                        )}
+                                        <View style={styles.templateMeta}>
+                                            <Typography variant="caption" color={colors.textMuted}>
+                                                {template.exercises.length} {t.templates.exerciseCount}
+                                            </Typography>
+                                            {template.estimatedDuration && (
+                                                <View style={styles.metaItem}>
+                                                    <Clock size={12} color={colors.textMuted} />
+                                                    <Typography variant="caption" color={colors.textMuted}>
+                                                        {template.estimatedDuration} {t.dashboard.minutes}
+                                                    </Typography>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
                                 </View>
-                                <View style={styles.templateInfo}>
-                                    <Typography variant="h3">{template.name}</Typography>
-                                    {template.description && (
-                                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>
-                                            {template.description}
+
+                                {/* Exercise Preview */}
+                                <View style={styles.exercisePreview}>
+                                    {template.exercises.slice(0, 4).map((exercise) => (
+                                        <View key={exercise.id} style={styles.exercisePreviewItem}>
+                                            <View style={[styles.previewDot, { backgroundColor: template.color || colors.primary }]} />
+                                            <Typography variant="caption" numberOfLines={1} style={{ flex: 1 }}>
+                                                {exercise.name}
+                                            </Typography>
+                                            <Typography variant="caption" color={colors.textMuted}>
+                                                {exercise.defaultSets}x
+                                            </Typography>
+                                        </View>
+                                    ))}
+                                    {template.exercises.length > 4 && (
+                                        <Typography variant="caption" color={colors.textMuted} style={{ paddingLeft: spacing[4] }}>
+                                            +{template.exercises.length - 4} {t.templates.moreExercises}
                                         </Typography>
                                     )}
-                                    <View style={styles.templateMeta}>
-                                        <Typography variant="caption" color={colors.textMuted}>
-                                            {template.exercises.length} {t.templates.exerciseCount}
-                                        </Typography>
-                                        {template.estimatedDuration && (
-                                            <View style={styles.metaItem}>
-                                                <Clock size={12} color={colors.textMuted} />
-                                                <Typography variant="caption" color={colors.textMuted}>
-                                                    {template.estimatedDuration} {t.dashboard.minutes}
-                                                </Typography>
-                                            </View>
-                                        )}
-                                    </View>
+                                </View>
+
+                                {/* Action Buttons */}
+                                <View style={styles.templateActions}>
+                                    <Pressable style={styles.actionButton} onPress={() => handleEditTemplate(template.id)}>
+                                        <Edit3 size={16} color={colors.textSecondary} />
+                                        <Typography variant="caption" color={colors.textSecondary}>{t.templates.edit}</Typography>
+                                    </Pressable>
+                                    <View style={styles.actionDivider} />
+                                    <Pressable style={styles.actionButton} onPress={() => handleDuplicate(template.id)}>
+                                        <Copy size={16} color={colors.textSecondary} />
+                                        <Typography variant="caption" color={colors.textSecondary}>{t.templates.duplicate}</Typography>
+                                    </Pressable>
+                                    <View style={styles.actionDivider} />
+                                    <Pressable style={styles.startButton} onPress={() => handleStartWorkout(template.id)}>
+                                        <Play size={16} color={colors.textOnPrimary} fill={colors.textOnPrimary} />
+                                        <Typography variant="caption" color={colors.textOnPrimary}>{t.templates.start}</Typography>
+                                    </Pressable>
                                 </View>
                             </View>
-
-                            {/* Exercise Preview */}
-                            <View style={styles.exercisePreview}>
-                                {template.exercises.slice(0, 4).map((exercise) => (
-                                    <View key={exercise.id} style={styles.exercisePreviewItem}>
-                                        <View style={[styles.previewDot, { backgroundColor: template.color || colors.primary }]} />
-                                        <Typography variant="caption" numberOfLines={1} style={{ flex: 1 }}>
-                                            {exercise.name}
-                                        </Typography>
-                                        <Typography variant="caption" color={colors.textMuted}>
-                                            {exercise.defaultSets}x
-                                        </Typography>
-                                    </View>
-                                ))}
-                                {template.exercises.length > 4 && (
-                                    <Typography variant="caption" color={colors.textMuted} style={{ paddingLeft: spacing[4] }}>
-                                        +{template.exercises.length - 4} {t.templates.moreExercises}
-                                    </Typography>
-                                )}
-                            </View>
-
-                            {/* Action Buttons */}
-                            <View style={styles.templateActions}>
-                                <Pressable style={styles.actionButton} onPress={() => handleEditTemplate(template.id)}>
-                                    <Edit3 size={16} color={colors.textSecondary} />
-                                    <Typography variant="caption" color={colors.textSecondary}>{t.templates.edit}</Typography>
-                                </Pressable>
-                                <View style={styles.actionDivider} />
-                                <Pressable style={styles.actionButton} onPress={() => handleDuplicate(template.id)}>
-                                    <Copy size={16} color={colors.textSecondary} />
-                                    <Typography variant="caption" color={colors.textSecondary}>{t.templates.duplicate}</Typography>
-                                </Pressable>
-                                <View style={styles.actionDivider} />
-                                <Pressable style={styles.startButton} onPress={() => handleStartWorkout(template.id)}>
-                                    <Play size={16} color={colors.textOnPrimary} fill={colors.textOnPrimary} />
-                                    <Typography variant="caption" color={colors.textOnPrimary}>{t.templates.start}</Typography>
-                                </Pressable>
-                            </View>
-                        </View>
+                        </SwipeableTemplateCard>
                     ))}
                 </View>
 

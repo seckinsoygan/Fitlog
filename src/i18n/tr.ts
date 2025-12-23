@@ -163,6 +163,8 @@ export const tr = {
         alreadyAddedMessage: 'Bu program zaten eklenmiş. Tekrar eklemek için önce mevcut olanı silin.',
         clearAll: 'Tümünü Sil',
         clearAllConfirm: 'Tüm programları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+        deleteTemplate: 'Programı Sil',
+        deleteTemplateConfirm: 'Bu programı silmek istediğinize emin misiniz?',
         cancel: 'İptal',
         delete: 'Sil',
     },
