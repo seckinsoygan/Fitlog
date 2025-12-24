@@ -18,6 +18,7 @@ import {
     Palette,
     LogOut,
     Globe,
+    Trash2,
 } from 'lucide-react-native';
 import { layout, spacing } from '../theme/spacing';
 import { Typography, H1, H2, Button } from '../components/atoms';
@@ -97,9 +98,12 @@ export const SettingsScreen: React.FC = () => {
     const toggleTheme = useThemeStore((state) => state.toggleTheme);
     const { profile, updateProfile } = useUserStore();
     const { goals, setGoals } = useNutritionStore();
-    const { signOut, userProfile, isLoading: authLoading } = useAuthStore();
+    const { signOut, deleteAccount, userProfile, isLoading: authLoading } = useAuthStore();
 
     const isDarkMode = mode === 'dark';
+
+    // Get translations
+    const { t, language, setLanguage } = useTranslation();
 
     const handleLogout = () => {
         showAlert(t.settings.logout, t.settings.logoutConfirm, [
@@ -108,8 +112,26 @@ export const SettingsScreen: React.FC = () => {
         ]);
     };
 
-    // Get translations
-    const { t, language, setLanguage } = useTranslation();
+    const handleDeleteAccount = () => {
+        showAlert(
+            t.settings.deleteAccount || 'Hesabı Sil',
+            t.settings.deleteAccountConfirm || 'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinecektir.',
+            [
+                { text: t.settings.cancel, style: 'cancel' },
+                {
+                    text: t.settings.delete || 'Sil',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteAccount();
+                        } catch (error: any) {
+                            showAlert(t.common.error, error.message || 'Hesap silinirken bir hata oluştu');
+                        }
+                    }
+                },
+            ]
+        );
+    };
 
     // Modal states
     const [showNameModal, setShowNameModal] = useState(false);
@@ -389,6 +411,19 @@ export const SettingsScreen: React.FC = () => {
                             title={t.settings.logout}
                             subtitle={userProfile?.email || ''}
                             onPress={handleLogout}
+                            colors={colors}
+                        />
+                    </View>
+                </View>
+
+                {/* Delete Account Section */}
+                <View style={styles.section}>
+                    <View style={styles.settingsGroup}>
+                        <SettingItem
+                            icon={<Trash2 size={20} color={colors.error} />}
+                            title={t.settings.deleteAccount}
+                            subtitle={t.settings.deleteAccountConfirm.substring(0, 50) + '...'}
+                            onPress={handleDeleteAccount}
                             colors={colors}
                         />
                     </View>

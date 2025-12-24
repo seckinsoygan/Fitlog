@@ -345,6 +345,10 @@ export const tr = {
         changeName: 'İsim Değiştir',
         enterYourName: 'İsminizi girin',
         restTime: 'Dinlenme Süresi',
+        // Account deletion
+        deleteAccount: 'Hesabı Sil',
+        deleteAccountConfirm: 'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinecektir.',
+        delete: 'Sil',
         // App Info
         madeWith: '💪 ile sevilerek yapıldı',
     },

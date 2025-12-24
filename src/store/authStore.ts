@@ -31,6 +31,7 @@ interface AuthState {
     signInWithGoogle: () => Promise<void>;
     signInWithApple: () => Promise<void>;
     signOut: () => Promise<void>;
+    deleteAccount: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
     clearError: () => void;
@@ -260,6 +261,68 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             set({ user: null, userProfile: null, isLoading: false });
         } catch (error: any) {
             set({ isLoading: false, error: 'Çıkış yapılırken bir hata oluştu' });
+            throw error;
+        }
+    },
+
+    deleteAccount: async () => {
+        const { user } = get();
+        if (!user) {
+            set({ error: 'Kullanıcı bulunamadı' });
+            return;
+        }
+
+        set({ isLoading: true, error: null });
+        try {
+            const uid = user.uid;
+
+            // Delete user data from Firestore collections
+            const collectionsToDelete = [
+                'users',
+                'workouts',
+                'workoutHistory',
+                'templates',
+                'weeklyPrograms',
+                'nutrition',
+                'achievements'
+            ];
+
+            const batch = db.batch();
+
+            // Delete main user document
+            batch.delete(db.collection('users').doc(uid));
+
+            // For other collections, we need to query and delete documents belonging to the user
+            for (const collectionName of collectionsToDelete) {
+                if (collectionName === 'users') continue; // Already handled above
+
+                try {
+                    const snapshot = await db.collection(collectionName)
+                        .where('userId', '==', uid)
+                        .get();
+
+                    snapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                } catch (e) {
+                    // Collection might not exist or have different structure, continue
+                    console.log(`Skipping collection ${collectionName}:`, e);
+                }
+            }
+
+            await batch.commit();
+
+            // Delete the Firebase Auth user
+            await user.delete();
+
+            // Clear local state
+            set({ user: null, userProfile: null, isLoading: false });
+        } catch (error: any) {
+            let errorMessage = 'Hesap silinirken bir hata oluştu';
+            if (error.code === 'auth/requires-recent-login') {
+                errorMessage = 'Hesabınızı silmek için yeniden giriş yapmanız gerekiyor';
+            }
+            set({ isLoading: false, error: errorMessage });
             throw error;
         }
     },

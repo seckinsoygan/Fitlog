@@ -345,6 +345,10 @@ export const en = {
         changeName: 'Change Name',
         enterYourName: 'Enter your name',
         restTime: 'Rest Time',
+        // Account deletion
+        deleteAccount: 'Delete Account',
+        deleteAccountConfirm: 'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+        delete: 'Delete',
         // App Info
         madeWith: 'Made with 💪 for lifters',
     },

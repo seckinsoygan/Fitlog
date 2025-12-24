@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLog - Profesyonel Antrenman Takip Uygulaması</title>
+    <meta name="description"
+        content="FitLog ile antrenmanlarınızı profesyonelce takip edin. Hazır programlar, detaylı istatistikler ve bulut senkronizasyon. Ücretsiz indirin!">
+    <meta name="keywords" content="fitness, antrenman, gym, spor, workout tracker, egzersiz, kas geliştirme">
+    <meta property="og:title" content="FitLog - Profesyonel Antrenman Takip Uygulaması">
+    <meta property="og:description"
+        content="Antrenmanlarınızı profesyonelce takip edin. Hazır programlar, detaylı istatistikler.">
+    <meta property="og:image" content="images/logo.png">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Language Selector -->
+    <div class="lang-selector" id="langSelector">
+        <button class="lang-btn active" data-lang="tr">🇹🇷 TR</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <img src="images/logo.png" alt="FitLog" class="logo-img">
+                <span class="logo-text">FitLog</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features" data-tr="Özellikler" data-en="Features">Özellikler</a>
+                <a href="#screenshots" data-tr="Ekranlar" data-en="Screenshots">Ekranlar</a>
+                <a href="#download" class="btn btn-primary" data-tr="İndir" data-en="Download">İndir</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features" data-tr="Özellikler" data-en="Features">Özellikler</a>
+        <a href="#screenshots" data-tr="Ekranlar" data-en="Screenshots">Ekranlar</a>
+        <a href="#download" class="btn btn-primary" data-tr="İndir" data-en="Download">İndir</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-glow"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    <span data-tr="🚀 Yeni Sürüm v1.0" data-en="🚀 New Release v1.0">🚀 Yeni Sürüm v1.0</span>
+                </div>
+                <h1>
+                    <span data-tr="Antrenmanlarını" data-en="Track Your Workouts">Antrenmanlarını</span>
+                    <span class="gradient-text" data-tr="Profesyonelce" data-en="Like a Pro">Profesyonelce</span>
+                    <span data-tr="Takip Et" data-en=""></span>
+                </h1>
+                <p class="hero-subtitle"
+                    data-tr="FitLog ile egzersizlerini kaydet, ilerlemenizi izle ve fitness hedeflerine ulaş. Hazır programlar, detaylı istatistikler ve daha fazlası."
+                    data-en="Record your exercises, track your progress and reach your fitness goals with FitLog. Ready-made programs, detailed statistics and more.">
+                    FitLog ile egzersizlerini kaydet, ilerlemenizi izle ve fitness hedeflerine ulaş. Hazır programlar,
+                    detaylı istatistikler ve daha fazlası.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary btn-lg btn-glow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.3 2.3-8.636-8.632z" />
+                        </svg>
+                        <span data-tr="Google Play'den İndir" data-en="Get it on Google Play">Google Play'den
+                            İndir</span>
+                    </a>
+                    <a href="#features" class="btn btn-glass btn-lg">
+                        <span data-tr="Özellikleri Keşfet" data-en="Explore Features">Özellikleri Keşfet</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-icon">🏋️</div>
+                        <div class="stat-content">
+                            <span class="stat-number" data-count="100">100+</span>
+                            <span class="stat-label" data-tr="Egzersiz" data-en="Exercises">Egzersiz</span>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <span class="stat-number">5</span>
+                            <span class="stat-label" data-tr="Hazır Program" data-en="Ready Programs">Hazır
+                                Program</span>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <span class="stat-number">%100</span>
+                            <span class="stat-label" data-tr="Ücretsiz" data-en="Free">Ücretsiz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-phones">
+                <div class="phone-wrapper phone-back">
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <img src="images/screen-programs.png" alt="Programs Screen" class="phone-screen-img">
+                    </div>
+                </div>
+                <div class="phone-wrapper phone-front">
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <img src="images/screen-home.png" alt="Home Screen" class="phone-screen-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <span data-tr="Aşağı Kaydır" data-en="Scroll Down">Aşağı Kaydır</span>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge" data-tr="✨ Özellikler" data-en="✨ Features">✨ Özellikler</span>
+                <h2>
+                    <span data-tr="Her Şey" data-en="Everything">Her Şey</span>
+                    <span class="gradient-text" data-tr="Tek Uygulamada" data-en="In One App">Tek Uygulamada</span>
+                </h2>
+                <p data-tr="Antrenmanlarını takip etmek, ilerleme kaydetmek ve hedeflerine ulaşmak için ihtiyacın olan tüm araçlar."
+                    data-en="All the tools you need to track your workouts, record progress and reach your goals.">
+                    Antrenmanlarını takip etmek, ilerleme kaydetmek ve hedeflerine ulaşmak için ihtiyacın olan tüm
+                    araçlar.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card feature-highlight">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-1">📋</div>
+                    </div>
+                    <h3 data-tr="Hazır Programlar" data-en="Ready Programs">Hazır Programlar</h3>
+                    <p data-tr="Push/Pull/Legs, Upper/Lower, Bro Split ve Full Body programları. Tek tıkla ekle, hemen başla."
+                        data-en="Push/Pull/Legs, Upper/Lower, Bro Split and Full Body programs. Add with one click, start immediately.">
+                        Push/Pull/Legs, Upper/Lower, Bro Split ve Full Body programları. Tek tıkla ekle, hemen başla.
+                    </p>
+                    <div class="feature-tags">
+                        <span class="tag">PPL</span>
+                        <span class="tag">Upper/Lower</span>
+                        <span class="tag">Bro Split</span>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-2">📊</div>
+                    </div>
+                    <h3 data-tr="Detaylı İstatistikler" data-en="Detailed Statistics">Detaylı İstatistikler</h3>
+                    <p data-tr="Haftalık antrenman, toplam hacim, kişisel rekorlar ve ilerleme grafikleri."
+                        data-en="Weekly workouts, total volume, personal records and progress charts.">
+                        Haftalık antrenman, toplam hacim, kişisel rekorlar ve ilerleme grafikleri.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-3">⏱️</div>
+                    </div>
+                    <h3 data-tr="Akıllı Zamanlayıcı" data-en="Smart Timer">Akıllı Zamanlayıcı</h3>
+                    <p data-tr="Set aralarında otomatik dinlenme zamanlayıcısı. Titreşimli bildirim."
+                        data-en="Automatic rest timer between sets. Vibration notification.">
+                        Set aralarında otomatik dinlenme zamanlayıcısı. Titreşimli bildirim.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-4">🏋️</div>
+                    </div>
+                    <h3 data-tr="100+ Egzersiz" data-en="100+ Exercises">100+ Egzersiz</h3>
+                    <p data-tr="Kapsamlı egzersiz kütüphanesi. Kas grubu filtreleme ve arama."
+                        data-en="Comprehensive exercise library. Muscle group filtering and search.">
+                        Kapsamlı egzersiz kütüphanesi. Kas grubu filtreleme ve arama.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-5">💧</div>
+                    </div>
+                    <h3 data-tr="Su Takibi" data-en="Water Tracking">Su Takibi</h3>
+                    <p data-tr="Günlük su tüketimini takip et. Hidrasyon hedeflerine ulaş."
+                        data-en="Track daily water intake. Reach your hydration goals.">
+                        Günlük su tüketimini takip et. Hidrasyon hedeflerine ulaş.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <div class="feature-icon feature-icon-6">☁️</div>
+                    </div>
+                    <h3 data-tr="Bulut Senkronizasyon" data-en="Cloud Sync">Bulut Senkronizasyon</h3>
+                    <p data-tr="Veriler Firebase ile bulutta saklanır. Cihaz değiştirsen bile kaybolmaz."
+                        data-en="Data stored in cloud with Firebase. Never lost even if you switch devices.">
+                        Veriler Firebase ile bulutta saklanır. Cihaz değiştirsen bile kaybolmaz.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="screenshots">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge" data-tr="📱 Uygulama" data-en="📱 App">📱 Uygulama</span>
+                <h2>
+                    <span data-tr="Gerçek" data-en="Real">Gerçek</span>
+                    <span class="gradient-text" data-tr="Uygulama Ekranları" data-en="App Screenshots">Uygulama
+                        Ekranları</span>
+                </h2>
+                <p data-tr="Modern tasarım, koyu tema ve kullanıcı dostu arayüz."
+                    data-en="Modern design, dark theme and user-friendly interface.">
+                    Modern tasarım, koyu tema ve kullanıcı dostu arayüz.
+                </p>
+            </div>
+
+            <div class="screenshots-carousel">
+                <div class="carousel-track" id="carouselTrack">
+                    <div class="screenshot-item">
+                        <div class="screenshot-phone">
+                            <div class="phone-frame">
+                                <div class="phone-notch-small"></div>
+                                <img src="images/screen-home.png" alt="Ana Sayfa" class="screenshot-img" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="screenshot-info">
+                            <h4 data-tr="Ana Sayfa" data-en="Home">Ana Sayfa</h4>
+                            <p data-tr="Günlük özet ve hızlı erişim" data-en="Daily summary and quick access">Günlük
+                                özet ve hızlı erişim</p>
+                        </div>
+                    </div>
+
+                    <div class="screenshot-item">
+                        <div class="screenshot-phone">
+                            <div class="phone-frame">
+                                <div class="phone-notch-small"></div>
+                                <img src="images/screen-programs.png" alt="Programlar" class="screenshot-img"
+                                    loading="lazy">
+                            </div>
+                        </div>
+                        <div class="screenshot-info">
+                            <h4 data-tr="Programlar" data-en="Programs">Programlar</h4>
+                            <p data-tr="Hazır antrenman programları" data-en="Ready workout programs">Hazır antrenman
+                                programları</p>
+                        </div>
+                    </div>
+
+                    <div class="screenshot-item">
+                        <div class="screenshot-phone">
+                            <div class="phone-frame">
+                                <div class="phone-notch-small"></div>
+                                <img src="images/screen-exercises.png" alt="Hareketler" class="screenshot-img"
+                                    loading="lazy">
+                            </div>
+                        </div>
+                        <div class="screenshot-info">
+                            <h4 data-tr="Hareketler" data-en="Exercises">Hareketler</h4>
+                            <p data-tr="100+ egzersiz kütüphanesi" data-en="100+ exercise library">100+ egzersiz
+                                kütüphanesi</p>
+                        </div>
+                    </div>
+
+                    <div class="screenshot-item">
+                        <div class="screenshot-phone">
+                            <div class="phone-frame">
+                                <div class="phone-notch-small"></div>
+                                <img src="images/screen-login.png" alt="Giriş" class="screenshot-img" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="screenshot-info">
+                            <h4 data-tr="Giriş" data-en="Login">Giriş</h4>
+                            <p data-tr="Güvenli hesap girişi" data-en="Secure account login">Güvenli hesap girişi</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev" id="carouselPrev" aria-label="Previous">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <div class="carousel-dots" id="carouselDots"></div>
+                    <button class="carousel-btn next" id="carouselNext" aria-label="Next">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18l6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <div class="download-card">
+                <div class="download-bg"></div>
+                <div class="download-content">
+                    <div class="download-icon">
+                        <img src="images/logo.png" alt="FitLog" class="download-logo">
+                    </div>
+                    <h2>
+                        <span data-tr="Hemen" data-en="Download">Hemen</span>
+                        <span class="gradient-text" data-tr="Ücretsiz İndir" data-en="For Free Now">Ücretsiz
+                            İndir</span>
+                    </h2>
+                    <p class="download-desc"
+                        data-tr="FitLog ile antrenmanlarını takip etmeye bugün başla. Tamamen ücretsiz, reklamsız deneyim."
+                        data-en="Start tracking your workouts today with FitLog. Completely free, ad-free experience.">
+                        FitLog ile antrenmanlarını takip etmeye bugün başla. Tamamen ücretsiz, reklamsız deneyim.
+                    </p>
+
+                    <a href="https://play.google.com/store/apps/details?id=com.seckinsoygan.fitlog"
+                        class="download-btn-main" target="_blank">
+                        <div class="play-store-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <path
+                                    d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.3 2.3-8.636-8.632z" />
+                            </svg>
+                        </div>
+                        <div class="download-btn-text">
+                            <span class="download-small" data-tr="Google Play'den" data-en="Get it on">Google
+                                Play'den</span>
+                            <span class="download-big" data-tr="Hemen İndir" data-en="Google Play">Hemen İndir</span>
+                        </div>
+                        <div class="download-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <div class="download-features">
+                        <div class="download-feature">
+                            <div class="check-icon">✓</div>
+                            <span data-tr="Ücretsiz" data-en="Free">Ücretsiz</span>
+                        </div>
+                        <div class="download-feature">
+                            <div class="check-icon">✓</div>
+                            <span data-tr="Reklamsız" data-en="No Ads">Reklamsız</span>
+                        </div>
+                        <div class="download-feature">
+                            <div class="check-icon">✓</div>
+                            <span data-tr="Offline Kullanım" data-en="Offline Use">Offline Kullanım</span>
+                        </div>
+                        <div class="download-feature">
+                            <div class="check-icon">✓</div>
+                            <span data-tr="Bulut Yedekleme" data-en="Cloud Backup">Bulut Yedekleme</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <img src="images/logo.png" alt="FitLog" class="logo-img">
+                        <span class="logo-text">FitLog</span>
+                    </a>
+                    <p data-tr="Antrenmanlarını profesyonelce takip et." data-en="Track your workouts like a pro.">
+                        Antrenmanlarını profesyonelce takip et.
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h5 data-tr="Uygulama" data-en="App">Uygulama</h5>
+                        <a href="#features" data-tr="Özellikler" data-en="Features">Özellikler</a>
+                        <a href="#screenshots" data-tr="Ekranlar" data-en="Screenshots">Ekranlar</a>
+                        <a href="#download" data-tr="İndir" data-en="Download">İndir</a>
+                    </div>
+                    <div class="footer-column">
+                        <h5 data-tr="Yasal" data-en="Legal">Yasal</h5>
+                        <a href="privacy.html" data-tr="Gizlilik Politikası" data-en="Privacy Policy">Gizlilik
+                            Politikası</a>
+                        <a href="privacy.html" data-tr="Kullanım Koşulları" data-en="Terms of Use">Kullanım
+                            Koşulları</a>
+                    </div>
+                    <div class="footer-column">
+                        <h5 data-tr="İletişim" data-en="Contact">İletişim</h5>
+                        <a href="mailto:seckin@example.com" data-tr="E-posta" data-en="Email">seckin@example.com</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-tr="© 2024 FitLog. Tüm hakları saklıdır." data-en="© 2024 FitLog. All rights reserved.">
+                    © 2024 FitLog. Tüm hakları saklıdır.
+                </p>
+                <div class="footer-social">
+                    <span data-tr="❤️ ile Türkiye'de yapıldı" data-en="Made with ❤️ in Turkey">❤️ ile Türkiye'de
+                        yapıldı</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
