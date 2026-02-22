@@ -16,11 +16,20 @@ import { layout, spacing } from '../../theme/spacing';
 import { Typography, H1 } from '../../components/atoms';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store';
+import { GoogleIcon } from '../../components/icons/SocialIcons';
+import Svg, { Path } from 'react-native-svg';
+
+// Apple Logo Icon Component
+const AppleIcon = ({ size = 20, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <Path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </Svg>
+);
 
 export const RegisterScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const colors = useThemeStore((state) => state.colors);
-    const { signUp, isLoading, error, clearError } = useAuthStore();
+    const { signUp, signInWithGoogle, signInWithApple, isLoading, error, clearError } = useAuthStore();
 
     const [displayName, setDisplayName] = useState('');
     const [email, setEmail] = useState('');
@@ -29,6 +38,7 @@ export const RegisterScreen: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [localError, setLocalError] = useState('');
     const [focusedInput, setFocusedInput] = useState<string | null>(null);
+    const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
     const hasMinLength = password.length >= 6;
     const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
@@ -58,6 +68,32 @@ export const RegisterScreen: React.FC = () => {
             await signUp(email.trim(), password, displayName.trim());
         } catch (err: any) {
             // Error is handled by the store
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        setLocalError('');
+        clearError();
+        setSocialLoading('google');
+        try {
+            await signInWithGoogle();
+        } catch (err: any) {
+            // Error is handled by the store
+        } finally {
+            setSocialLoading(null);
+        }
+    };
+
+    const handleAppleSignIn = async () => {
+        setLocalError('');
+        clearError();
+        setSocialLoading('apple');
+        try {
+            await signInWithApple();
+        } catch (err: any) {
+            // Error is handled by the store
+        } finally {
+            setSocialLoading(null);
         }
     };
 
@@ -228,6 +264,43 @@ export const RegisterScreen: React.FC = () => {
                         <Typography variant="caption" color={colors.textMuted} style={styles.terms}>
                             Kayıt olarak Kullanım Koşulları ve Gizlilik Politikası'nı kabul etmiş olursunuz.
                         </Typography>
+
+                        {/* Divider */}
+                        <View style={styles.divider}>
+                            <View style={styles.dividerLine} />
+                            <Typography variant="caption" color={colors.textMuted}>
+                                veya
+                            </Typography>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        {/* Social Buttons */}
+                        <View style={styles.socialButtons}>
+                            <Pressable
+                                style={[styles.socialButton, socialLoading === 'google' && styles.buttonDisabled]}
+                                onPress={handleGoogleSignIn}
+                                disabled={socialLoading !== null || isLoading}
+                            >
+                                <GoogleIcon size={20} />
+                                <Typography variant="body">
+                                    {socialLoading === 'google' ? 'Giriş yapılıyor...' : 'Google ile devam et'}
+                                </Typography>
+                            </Pressable>
+                        </View>
+
+                        {/* Apple Sign-In Button - iOS Only */}
+                        {Platform.OS === 'ios' && (
+                            <Pressable
+                                style={[styles.socialButton, styles.appleButton, socialLoading === 'apple' && styles.buttonDisabled]}
+                                onPress={handleAppleSignIn}
+                                disabled={socialLoading !== null || isLoading}
+                            >
+                                <AppleIcon size={20} color="#FFFFFF" />
+                                <Typography variant="body" color="#FFFFFF">
+                                    {socialLoading === 'apple' ? 'Giriş yapılıyor...' : 'Apple ile devam et'}
+                                </Typography>
+                            </Pressable>
+                        )}
                     </View>
 
                     {/* Login Link */}
@@ -349,5 +422,35 @@ const createStyles = (colors: any) => StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         paddingVertical: spacing[5],
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing[3],
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: colors.border,
+    },
+    socialButtons: {
+        flexDirection: 'row',
+        gap: spacing[3],
+    },
+    socialButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing[2],
+        paddingVertical: spacing[3],
+        borderRadius: layout.radiusMedium,
+        backgroundColor: colors.background,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    appleButton: {
+        backgroundColor: '#000',
+        borderColor: '#000',
     },
 });

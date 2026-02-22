@@ -14,8 +14,15 @@
       "backgroundColor": "#09090B"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.fitlog.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.seckinsoygan.fitlog",
+      "buildNumber": "2",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Bu uygulama kamera kullanmaz.",
+        "NSPhotoLibraryUsageDescription": "Bu uygulama fotoğraf galerisi kullanmaz.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +31,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.seckinsoygan.fitlog",
-      "versionCode": 1,
+      "versionCode": 2,
       "permissions": [
         "INTERNET",
         "VIBRATE"
@@ -44,7 +51,9 @@
       "scope": "/"
     },
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {

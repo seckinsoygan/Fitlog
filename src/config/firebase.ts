@@ -1,7 +1,14 @@
-// FitLog - Firebase Configuration (Compat Mode for Expo)
+// FitLog - Firebase Configuration (Hybrid: Modern Auth + Compat Firestore)
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+    getAuth,
+    initializeAuth,
+    getReactNativePersistence
+} from 'firebase/auth';
 import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -14,13 +21,35 @@ const firebaseConfig = {
     measurementId: "G-KKNDVKNRFR"
 };
 
-// Initialize Firebase
+// Initialize Firebase App (Modern SDK)
+let app;
+let auth;
+
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+
+    // Initialize Auth with React Native persistence
+    if (Platform.OS !== 'web') {
+        auth = initializeAuth(app, {
+            persistence: getReactNativePersistence(AsyncStorage)
+        });
+    } else {
+        auth = getAuth(app);
+    }
+} else {
+    app = getApp();
+    auth = getAuth(app);
+}
+
+// Initialize Compat Firebase for Firestore (other stores use this)
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Initialize services
-export const auth = firebase.auth();
-export const db = firebase.firestore();
+// Compat Firestore for existing stores
+const db = firebase.firestore();
 
-export default firebase;
+// Export both modern auth and compat firestore
+export { auth, db };
+export { firebase }; // For stores that need firebase.firestore.FieldValue
+export default app;

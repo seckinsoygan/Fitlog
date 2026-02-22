@@ -1,7 +1,21 @@
-// FitLog - Authentication Store with Firebase (Compat Mode)
+// FitLog - Authentication Store with Firebase (Modern Auth SDK - React Native Compatible)
 import { create } from 'zustand';
-import firebase from 'firebase/compat/app';
-import { auth, db } from '../config/firebase';
+import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut as firebaseSignOut,
+    sendPasswordResetEmail,
+    updateProfile,
+    deleteUser,
+    signInWithCredential,
+    OAuthProvider,
+    User
+} from 'firebase/auth';
+import { auth, db, firebase } from '../config/firebase';
+import { Platform } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 
 export interface UserProfile {
     uid: string;
@@ -18,7 +32,7 @@ export interface UserProfile {
 }
 
 interface AuthState {
-    user: firebase.User | null;
+    user: User | null;
     userProfile: UserProfile | null;
     isLoading: boolean;
     isInitialized: boolean;
@@ -45,20 +59,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     error: null,
 
     initialize: () => {
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // User is signed in, fetch their profile
                 try {
                     const userDoc = await db.collection('users').doc(user.uid).get();
+
                     if (userDoc.exists) {
-                        set({
-                            user,
-                            userProfile: userDoc.data() as UserProfile,
-                            isInitialized: true
-                        });
+                        const profileData = userDoc.data() as UserProfile;
+                        set({ user, userProfile: profileData, isInitialized: true });
                     } else {
-                        // Create default profile if doesn't exist
-                        const defaultProfile: UserProfile = {
+                        // Create profile if doesn't exist
+                        const newProfile: UserProfile = {
                             uid: user.uid,
                             email: user.email || '',
                             displayName: user.displayName || 'Sporcu',
@@ -70,8 +82,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                             restTimerDefault: 90,
                             dailyCalorieGoal: 2500,
                         };
-                        await db.collection('users').doc(user.uid).set(defaultProfile);
-                        set({ user, userProfile: defaultProfile, isInitialized: true });
+                        await db.collection('users').doc(user.uid).set(newProfile);
+                        set({ user, userProfile: newProfile, isInitialized: true });
                     }
                 } catch (error) {
                     console.error('Error fetching user profile:', error);
@@ -87,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signIn: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-            const result = await auth.signInWithEmailAndPassword(email, password);
+            const result = await signInWithEmailAndPassword(auth, email, password);
             // Update last login
             if (result.user) {
                 await db.collection('users').doc(result.user.uid).update({
@@ -105,6 +117,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 errorMessage = 'Geçersiz e-posta adresi';
             } else if (error.code === 'auth/too-many-requests') {
                 errorMessage = 'Çok fazla deneme. Lütfen daha sonra tekrar deneyin.';
+            } else if (error.code === 'auth/invalid-credential') {
+                errorMessage = 'E-posta veya şifre hatalı';
             }
             set({ isLoading: false, error: errorMessage });
             throw error;
@@ -114,57 +128,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signInWithGoogle: async () => {
         set({ isLoading: true, error: null });
         try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.addScope('profile');
-            provider.addScope('email');
-
-            const result = await auth.signInWithPopup(provider);
-
-            if (result.user) {
-                // Check if user profile exists, create if not
-                const userDoc = await db.collection('users').doc(result.user.uid).get();
-
-                if (!userDoc.exists) {
-                    const userProfile: UserProfile = {
-                        uid: result.user.uid,
-                        email: result.user.email || '',
-                        displayName: result.user.displayName || 'Sporcu',
-                        photoURL: result.user.photoURL || undefined,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        weightUnit: 'kg',
-                        weeklyGoal: 4,
-                        restTimerDefault: 90,
-                        dailyCalorieGoal: 2500,
-                    };
-                    await db.collection('users').doc(result.user.uid).set(userProfile);
-                } else {
-                    await db.collection('users').doc(result.user.uid).update({
-                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    });
-                }
-            }
-            set({ isLoading: false });
+            // Note: Google Sign-In requires additional setup with expo-auth-session
+            // For now, show a user-friendly message
+            set({
+                isLoading: false,
+                error: 'Google ile giriş şu an için kullanılamıyor. Lütfen e-posta ve şifre ile giriş yapın.'
+            });
         } catch (error: any) {
             console.error('❌ Google Sign-In Error:', error);
-            console.error('Error code:', error.code);
-            console.error('Error message:', error.message);
-
-            let errorMessage = 'Google ile giriş yapılırken bir hata oluştu';
-            if (error.code === 'auth/popup-closed-by-user') {
-                errorMessage = 'Giriş penceresi kapatıldı';
-            } else if (error.code === 'auth/popup-blocked') {
-                errorMessage = 'Pop-up penceresi engellendi. Lütfen izin verin.';
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                errorMessage = 'Giriş iptal edildi';
-            } else if (error.code === 'auth/unauthorized-domain') {
-                errorMessage = 'Bu domain Firebase\'de yetkilendirilmemiş. Firebase Console > Authentication > Settings > Authorized domains kısmına localhost ekleyin.';
-            } else if (error.code === 'auth/operation-not-allowed') {
-                errorMessage = 'Google Sign-In etkin değil. Firebase Console\'da etkinleştirin.';
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            set({ isLoading: false, error: errorMessage });
+            set({ isLoading: false, error: 'Google ile giriş yapılırken bir hata oluştu' });
             throw error;
         }
     },
@@ -172,22 +144,65 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signInWithApple: async () => {
         set({ isLoading: true, error: null });
         try {
-            const provider = new firebase.auth.OAuthProvider('apple.com');
-            provider.addScope('email');
-            provider.addScope('name');
+            if (Platform.OS !== 'ios') {
+                set({
+                    isLoading: false,
+                    error: 'Apple ile giriş sadece iOS cihazlarda kullanılabilir.'
+                });
+                return;
+            }
 
-            const result = await auth.signInWithPopup(provider);
+            // Check if Apple Authentication is available
+            const isAvailable = await AppleAuthentication.isAvailableAsync();
+            if (!isAvailable) {
+                set({
+                    isLoading: false,
+                    error: 'Apple ile giriş bu cihazda desteklenmiyor.'
+                });
+                return;
+            }
+
+            // Generate nonce for security
+            const nonce = Math.random().toString(36).substring(2, 10);
+            const hashedNonce = await Crypto.digestStringAsync(
+                Crypto.CryptoDigestAlgorithm.SHA256,
+                nonce
+            );
+
+            // Request Apple Sign-In
+            const appleCredential = await AppleAuthentication.signInAsync({
+                requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                ],
+                nonce: hashedNonce,
+            });
+
+            // Create Firebase credential
+            const provider = new OAuthProvider('apple.com');
+            const credential = provider.credential({
+                idToken: appleCredential.identityToken!,
+                rawNonce: nonce,
+            });
+
+            // Sign in with Firebase
+            const result = await signInWithCredential(auth, credential);
 
             if (result.user) {
-                // Check if user profile exists, create if not
+                // Check if user profile exists
                 const userDoc = await db.collection('users').doc(result.user.uid).get();
 
                 if (!userDoc.exists) {
-                    const userProfile: UserProfile = {
+                    // Create new profile - Apple may provide name only on first sign-in
+                    const fullName = appleCredential.fullName;
+                    const displayName = fullName
+                        ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim()
+                        : result.user.displayName || 'Sporcu';
+
+                    const newProfile: UserProfile = {
                         uid: result.user.uid,
-                        email: result.user.email || '',
-                        displayName: result.user.displayName || 'Sporcu',
-                        photoURL: result.user.photoURL || undefined,
+                        email: result.user.email || appleCredential.email || '',
+                        displayName: displayName,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
                         weightUnit: 'kg',
@@ -195,22 +210,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                         restTimerDefault: 90,
                         dailyCalorieGoal: 2500,
                     };
-                    await db.collection('users').doc(result.user.uid).set(userProfile);
+
+                    await db.collection('users').doc(result.user.uid).set(newProfile);
                 } else {
+                    // Update last login
                     await db.collection('users').doc(result.user.uid).update({
                         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
                     });
                 }
             }
+
             set({ isLoading: false });
         } catch (error: any) {
-            let errorMessage = 'Apple ile giriş yapılırken bir hata oluştu';
-            if (error.code === 'auth/popup-closed-by-user') {
-                errorMessage = 'Giriş penceresi kapatıldı';
-            } else if (error.code === 'auth/popup-blocked') {
-                errorMessage = 'Pop-up penceresi engellendi. Lütfen izin verin.';
+            if (error.code === 'ERR_REQUEST_CANCELED') {
+                // User cancelled the sign-in
+                set({ isLoading: false, error: null });
+                return;
             }
-            set({ isLoading: false, error: errorMessage });
+            console.error('❌ Apple Sign-In Error:', error);
+            set({ isLoading: false, error: 'Apple ile giriş yapılırken bir hata oluştu' });
             throw error;
         }
     },
@@ -218,11 +236,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signUp: async (email, password, displayName) => {
         set({ isLoading: true, error: null });
         try {
-            const result = await auth.createUserWithEmailAndPassword(email, password);
+            const result = await createUserWithEmailAndPassword(auth, email, password);
 
             if (result.user) {
                 // Update display name
-                await result.user.updateProfile({ displayName });
+                await updateProfile(result.user, { displayName });
 
                 // Create user profile in Firestore
                 const userProfile: UserProfile = {
@@ -257,7 +275,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signOut: async () => {
         set({ isLoading: true, error: null });
         try {
-            await auth.signOut();
+            await firebaseSignOut(auth);
             set({ user: null, userProfile: null, isLoading: false });
         } catch (error: any) {
             set({ isLoading: false, error: 'Çıkış yapılırken bir hata oluştu' });
@@ -313,7 +331,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await batch.commit();
 
             // Delete the Firebase Auth user
-            await user.delete();
+            await deleteUser(user);
 
             // Clear local state
             set({ user: null, userProfile: null, isLoading: false });
@@ -330,7 +348,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     resetPassword: async (email) => {
         set({ isLoading: true, error: null });
         try {
-            await auth.sendPasswordResetEmail(email);
+            await sendPasswordResetEmail(auth, email);
             set({ isLoading: false });
         } catch (error: any) {
             let errorMessage = 'Şifre sıfırlama e-postası gönderilirken bir hata oluştu';
