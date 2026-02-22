@@ -1,173 +1,305 @@
-# FitLog - Kişisel Fitness Takip Uygulaması 💪
-
 <p align="center">
-  <img src="https://img.shields.io/badge/React%20Native-0.81.5-blue?logo=react" alt="React Native" />
-  <img src="https://img.shields.io/badge/Expo-54.0-black?logo=expo" alt="Expo" />
-  <img src="https://img.shields.io/badge/Firebase-12.7-orange?logo=firebase" alt="Firebase" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript" alt="TypeScript" />
+  <img src="assets/icon.png" alt="FitLog Logo" width="120" height="120" style="border-radius: 24px;" />
 </p>
 
-## 📱 Hakkında
+<h1 align="center">FitLog</h1>
 
-FitLog, antrenmanlarınızı takip etmenizi, beslenme alışkanlıklarınızı izlemenizi ve fitness hedeflerinize ulaşmanızı sağlayan modern bir mobil uygulamadır. React Native ve Expo ile geliştirilmiş olup, hem iOS hem de Android platformlarında çalışır.
+<p align="center">
+  <strong>Your Personal Fitness Tracking Companion</strong>
+</p>
 
-## ✨ Özellikler
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#project-structure">Project Structure</a>
+</p>
 
-### 🏋️ Antrenman Takibi
-- Hazır antrenman şablonları
-- Özelleştirilebilir egzersiz programları
-- Set, tekrar ve ağırlık takibi
-- Antrenman geçmişi ve istatistikler
-- Dinlenme zamanlayıcısı
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-iOS%20%7C%20Android%20%7C%20Web-blue?style=for-the-badge" alt="Platform" />
+  <img src="https://img.shields.io/badge/Expo-SDK%2054-000020?style=for-the-badge&logo=expo" alt="Expo" />
+  <img src="https://img.shields.io/badge/React%20Native-0.81-61DAFB?style=for-the-badge&logo=react" alt="React Native" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript" />
+</p>
 
-### 🍎 Beslenme Takibi
-- Günlük kalori takibi
-- Makro besin (protein, karbonhidrat, yağ) takibi
-- Su tüketimi izleme
-- Beslenme geçmişi görüntüleme
-- Hızlı yemek ekleme
+---
 
-### 🏆 Başarılar ve Rozetler
-- Motivasyon artırıcı rozet sistemi
-- İlerleme bazlı ödüller
-- Streak takibi
+## 📱 About
 
-### 📊 İlerleme Takibi
-- Haftalık/aylık istatistikler
-- Görsel grafikler
-- Kişisel rekorlar
-- Vücut ölçüleri takibi
+**FitLog** is a premium, cross-platform fitness tracking application built with React Native and Expo. It helps users track their workouts, nutrition, water intake, and overall fitness progress — all within a beautifully designed dark-themed interface with neon green accents.
 
-### 🔐 Kimlik Doğrulama
-- E-posta/şifre ile giriş
-- Google ile giriş
-- Güvenli Firebase Authentication
+Whether you're a beginner or an advanced lifter, FitLog provides the tools you need to stay consistent and reach your fitness goals.
 
-## 🛠️ Teknolojiler
+---
 
-| Teknoloji | Açıklama |
-|-----------|----------|
-| **React Native** | Cross-platform mobil uygulama geliştirme |
-| **Expo** | React Native geliştirme platformu |
-| **TypeScript** | Tip güvenli JavaScript |
-| **Firebase** | Backend servisleri (Auth, Firestore) |
-| **Zustand** | State management |
-| **React Navigation** | Sayfa yönlendirme |
-| **Lucide Icons** | Modern ikon kütüphanesi |
+## ✨ Features
 
-## 📦 Kurulum
+### 🏋️ Workout Tracking
+- **Active Workout Sessions** — Start, track, and complete workouts in real-time
+- **Rest Timer** — Built-in configurable rest timer with haptic feedback
+- **Set Logging** — Log sets with weight, reps, and RPE tracking
+- **Exercise Library** — 100+ pre-loaded exercises with detailed descriptions and muscle group targeting
 
-### Gereksinimler
-- Node.js 18+
-- npm veya yarn
-- Expo CLI
+### 📋 Workout Templates
+- **Custom Templates** — Create and save reusable workout templates
+- **Template Editor** — Drag-and-drop exercise ordering with customizable sets/reps
+- **Quick Start** — Launch workouts instantly from saved templates
 
-### Adımlar
+### 📅 Weekly Programs
+- **Program Builder** — Design complete weekly training programs
+- **Day-by-Day Planning** — Assign specific workouts to each day of the week
+- **Swipe-to-Delete** — Intuitive gesture-based card management
 
-1. **Repoyu klonlayın:**
-```bash
-git clone https://github.com/seckinsoygan/fitlog.git
-cd fitlog
+### 📊 Progress Tracking
+- **Visual Charts** — Track your strength gains over time with interactive charts
+- **Statistics Dashboard** — Total workouts, volume, streak tracking, and personal records
+- **Workout History** — Complete log of all past sessions with detailed breakdowns
+
+### 🥗 Nutrition & Water
+- **Calorie Tracking** — Log daily meals with macro breakdowns (protein, carbs, fats)
+- **Water Intake** — Beautiful animated water tracker with daily goals
+- **Nutrition Goals** — Set and monitor personalized nutrition targets
+
+### 🏆 Achievements & Gamification
+- **Achievement System** — Unlock badges and milestones as you progress
+- **Streak Tracking** — Maintain workout streaks and build consistency
+- **Level Progression** — Gain XP and level up your fitness journey
+
+### 🔐 Authentication & Cloud Sync
+- **Email/Password Auth** — Secure Firebase authentication
+- **Apple Sign-In** — Native Apple authentication for iOS users
+- **Cloud Sync** — All data synced across devices via Firebase Firestore
+
+### 🎨 Premium UI/UX
+- **Dark & Light Themes** — Beautiful dark mode with neon green (#D4FF00) accents
+- **Smooth Animations** — React Native Reanimated powered micro-interactions
+- **Responsive Design** — Runs natively on iOS, Android, and Web
+- **Multi-Language** — Full support for English 🇬🇧 and Turkish 🇹🇷
+
+---
+
+## 🛠 Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| **Framework** | [React Native](https://reactnative.dev/) 0.81 with [Expo](https://expo.dev/) SDK 54 |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) 5.9 |
+| **Navigation** | [React Navigation](https://reactnavigation.org/) 7 (Stack + Bottom Tabs) |
+| **State Management** | [Zustand](https://zustand-demo.pmnd.rs/) 5 |
+| **Backend / Auth** | [Firebase](https://firebase.google.com/) (Auth + Firestore) |
+| **Database (Local)** | [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/) |
+| **Animations** | [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) 4 |
+| **Gestures** | [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/) |
+| **Icons** | [Lucide React Native](https://lucide.dev/) |
+| **Charts** | [React Native Chart Kit](https://github.com/indiespirit/react-native-chart-kit) |
+| **Build & Deploy** | [EAS Build](https://docs.expo.dev/build/introduction/) |
+
+---
+
+## 🏗 Architecture
+
+FitLog follows an **Atomic Design** component architecture with a unidirectional data flow:
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    App.tsx (Entry)                    │
+│                         │                            │
+│     ┌──────────────────────────────────────┐         │
+│     │          Navigation Layer            │         │
+│     │  Onboarding → Auth → TrainingStyle   │         │
+│     │          → Main App Tabs             │         │
+│     └──────────────────────────────────────┘         │
+│                         │                            │
+│   ┌─────────┬───────────┼───────────┬─────────┐      │
+│   │ Home    │ Templates │ Progress  │Nutrition│      │
+│   │ Screen  │ Screen    │ Screen    │ Screen  │      │
+│   └─────────┴───────────┴───────────┴─────────┘      │
+│                         │                            │
+│     ┌──────────────────────────────────────┐         │
+│     │      Zustand State Management        │         │
+│     │  workoutStore │ nutritionStore │ ...  │         │
+│     └──────────────────────────────────────┘         │
+│                         │                            │
+│     ┌──────────────────────────────────────┐         │
+│     │        Firebase / SQLite             │         │
+│     │     Cloud Sync + Local Storage       │         │
+│     └──────────────────────────────────────┘         │
+└──────────────────────────────────────────────────────┘
 ```
 
-2. **Bağımlılıkları yükleyin:**
+### Component Structure (Atomic Design)
+
+```
+components/
+├── atoms/          # Button, Typography, NumberInput
+├── molecules/      # StatCard, WorkoutCard, RestTimer, WaterTracker
+├── organisms/      # WeeklyProgress, complex composed components
+└── icons/          # Custom icon components
+```
+
+### State Management
+
+Each feature domain has its own Zustand store with Firebase sync:
+
+| Store | Purpose |
+|-------|---------|
+| `workoutStore` | Active workout session management |
+| `workoutHistoryStore` | Completed workout history |
+| `exerciseLibraryStore` | Exercise database and search |
+| `nutritionStore` | Meal logging and calorie tracking |
+| `waterStore` | Daily water intake tracking |
+| `weeklyProgramStore` | Training program management |
+| `achievementsStore` | Badges, XP, and milestones |
+| `authStore` | Firebase authentication state |
+| `userStore` | User profile and preferences |
+| `themeStore` | Dark/light theme management |
+| `languageStore` | i18n language selection |
+| `onboardingStore` | Onboarding flow state |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18+
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- [EAS CLI](https://docs.expo.dev/build/setup/) (for builds)
+- iOS Simulator (macOS) or Android Emulator
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/seckinsoygan/Fitlog.git
+cd Fitlog
+
+# Install dependencies
 npm install
+
+# Start the development server
+npm start
 ```
 
-3. **Firebase yapılandırması:**
-   - Firebase Console'da yeni bir proje oluşturun
-   - Authentication ve Firestore'u etkinleştirin
-   - `src/config/firebase.ts` dosyasını kendi Firebase yapılandırmanızla güncelleyin
+### Running on Devices
 
-4. **Uygulamayı başlatın:**
 ```bash
-# Web için
-npm run web
-
-# iOS için
+# iOS Simulator
 npm run ios
 
-# Android için
+# Android Emulator
 npm run android
+
+# Web Browser
+npm run web
 ```
 
-## 🌐 Canlı Demo
-
-**Web:** [https://fitlog-xi.vercel.app](https://fitlog-xi.vercel.app)
-
-## 📱 Ekran Görüntüleri
-
-| Dashboard | Antrenman | Beslenme | İlerleme |
-|-----------|-----------|----------|----------|
-| Ana ekran ve günlük özet | Antrenman şablonları ve takip | Kalori ve makro takibi | Haftalık istatistikler |
-
-## 🏗️ Proje Yapısı
-
-```
-src/
-├── components/
-│   ├── atoms/        # Temel UI bileşenleri
-│   ├── molecules/    # Birleşik bileşenler
-│   └── organisms/    # Karmaşık bileşenler
-├── screens/          # Uygulama ekranları
-│   └── auth/         # Kimlik doğrulama ekranları
-├── store/            # Zustand state yönetimi
-├── navigation/       # React Navigation yapılandırması
-├── theme/            # Renk ve stil tanımları
-├── config/           # Firebase ve diğer yapılandırmalar
-└── hooks/            # Custom React hooks
-```
-
-## 🔧 Yapılandırma
-
-### Firebase
-`src/config/firebase.ts` dosyasında Firebase yapılandırmanızı güncelleyin:
-
-```typescript
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-```
-
-### EAS Build
-APK veya AAB build almak için:
+### Building for Production
 
 ```bash
-# Preview APK
-npx eas build --platform android --profile preview
+# Install EAS CLI globally
+npm install -g eas-cli
 
-# Production AAB
-npx eas build --platform android --profile production
+# Login to Expo
+eas login
+
+# Build for iOS (App Store)
+eas build --platform ios --profile production
+
+# Build for Android (Play Store)
+eas build --platform android --profile production
+
+# Submit to App Store
+eas submit --platform ios --latest
 ```
 
-## 🚀 Deploy
+---
 
-### Vercel (Web)
-```bash
-npx vercel --prod
+## 📂 Project Structure
+
+```
+fitlog-app/
+├── App.tsx                    # Application entry point
+├── index.ts                   # Expo entry registration
+├── app.json                   # Expo configuration
+├── eas.json                   # EAS Build profiles
+├── assets/                    # App icons, splash screens
+├── src/
+│   ├── components/
+│   │   ├── atoms/             # Button, Typography, NumberInput
+│   │   ├── molecules/         # StatCard, WorkoutCard, RestTimer, Header
+│   │   ├── organisms/         # WeeklyProgress, complex layouts
+│   │   └── icons/             # Custom icon components
+│   ├── screens/
+│   │   ├── DashboardScreen    # Home dashboard with stats
+│   │   ├── ActiveWorkoutScreen # Live workout tracking
+│   │   ├── TemplatesScreen    # Workout template management
+│   │   ├── ProgressScreen     # Charts and statistics
+│   │   ├── NutritionScreen    # Calorie & macro tracking
+│   │   ├── ExercisesScreen    # Exercise library browser
+│   │   ├── HistoryScreen      # Workout history log
+│   │   ├── WeeklyProgramScreen # Weekly program builder
+│   │   ├── AchievementsScreen # Badges and milestones
+│   │   ├── SettingsScreen     # App settings & preferences
+│   │   ├── auth/              # Login, Register, ForgotPassword
+│   │   └── onboarding/        # Onboarding & training style
+│   ├── store/                 # Zustand state stores (13 stores)
+│   ├── navigation/            # React Navigation setup
+│   ├── hooks/                 # Custom hooks (useTimer, useColors, etc.)
+│   ├── services/              # Firebase sync services
+│   ├── config/                # Firebase configuration
+│   ├── theme/                 # Colors, typography, spacing tokens
+│   ├── i18n/                  # English & Turkish translations
+│   ├── types/                 # TypeScript type definitions
+│   └── data/                  # Static data and constants
+├── web/                       # Web-specific entry point
+├── landing-page/              # Marketing landing page
+└── public/                    # Public static assets
 ```
 
-### Google Play Store
-1. EAS ile production build alın
-2. Google Play Console'a AAB dosyasını yükleyin
+---
 
-## 📄 Lisans
+## 🌍 Internationalization
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+FitLog supports multiple languages with a custom i18n system:
 
-## 👨‍💻 Geliştirici
+| Language | Status |
+|----------|--------|
+| 🇹🇷 Türkçe (Turkish) | ✅ Full support |
+| 🇬🇧 English | ✅ Full support |
 
-**Seckin Soygan**
+Language can be switched from Settings at any time.
+
+---
+
+## 🎨 Design System
+
+FitLog uses a carefully crafted design system:
+
+- **Primary Color**: `#D4FF00` (Neon Green/Lime)
+- **Background**: `#09090B` (Deep Black)
+- **Surface**: `#18181B` (Dark Gray)
+- **Typography**: System fonts with carefully weighted hierarchy
+- **Border Radius**: Consistent rounded corners for a modern feel
+- **Spacing**: 4px grid system for harmonious layouts
+
+---
+
+## 📄 License
+
+This project is private and proprietary. All rights reserved.
+
+---
+
+## 👨‍💻 Author
+
+**Seçkin Soygan**
+
 - GitHub: [@seckinsoygan](https://github.com/seckinsoygan)
 
 ---
 
 <p align="center">
-  Made with ❤️ using React Native & Expo
+  Built with ❤️ and 💪
 </p>
