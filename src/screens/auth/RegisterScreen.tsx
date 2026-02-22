@@ -288,19 +288,17 @@ export const RegisterScreen: React.FC = () => {
                             </Pressable>
                         </View>
 
-                        {/* Apple Sign-In Button - iOS Only */}
-                        {Platform.OS === 'ios' && (
-                            <Pressable
-                                style={[styles.socialButton, styles.appleButton, socialLoading === 'apple' && styles.buttonDisabled]}
-                                onPress={handleAppleSignIn}
-                                disabled={socialLoading !== null || isLoading}
-                            >
-                                <AppleIcon size={20} color="#FFFFFF" />
-                                <Typography variant="body" color="#FFFFFF">
-                                    {socialLoading === 'apple' ? 'Giriş yapılıyor...' : 'Apple ile devam et'}
-                                </Typography>
-                            </Pressable>
-                        )}
+                        {/* Apple Sign-In Button */}
+                        <Pressable
+                            style={[styles.socialButton, styles.appleButton, socialLoading === 'apple' && styles.buttonDisabled]}
+                            onPress={handleAppleSignIn}
+                            disabled={socialLoading !== null || isLoading}
+                        >
+                            <AppleIcon size={20} color="#FFFFFF" />
+                            <Typography variant="body" color="#FFFFFF">
+                                {socialLoading === 'apple' ? 'Giriş yapılıyor...' : 'Apple ile devam et'}
+                            </Typography>
+                        </Pressable>
                     </View>
 
                     {/* Login Link */}
