@@ -9,6 +9,8 @@ import {
     updateProfile,
     deleteUser,
     signInWithCredential,
+    signInWithPopup,
+    GoogleAuthProvider,
     OAuthProvider,
     User
 } from 'firebase/auth';
@@ -128,14 +130,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     signInWithGoogle: async () => {
         set({ isLoading: true, error: null });
         try {
-            // Note: Google Sign-In requires additional setup with expo-auth-session
-            // For now, show a user-friendly message
-            set({
-                isLoading: false,
-                error: 'Google ile giriş şu an için kullanılamıyor. Lütfen e-posta ve şifre ile giriş yapın.'
-            });
+            if (Platform.OS === 'web') {
+                // Web: Use signInWithPopup
+                const provider = new GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                const result = await signInWithPopup(auth, provider);
+
+                if (result.user) {
+                    // Check if user profile exists in Firestore
+                    const userDoc = await db.collection('users').doc(result.user.uid).get();
+
+                    if (!userDoc.exists) {
+                        // Create new profile
+                        const newProfile: UserProfile = {
+                            uid: result.user.uid,
+                            email: result.user.email || '',
+                            displayName: result.user.displayName || 'Sporcu',
+                            photoURL: result.user.photoURL || undefined,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            weightUnit: 'kg',
+                            weeklyGoal: 4,
+                            restTimerDefault: 90,
+                            dailyCalorieGoal: 2500,
+                        };
+                        await db.collection('users').doc(result.user.uid).set(newProfile);
+                    } else {
+                        // Update last login
+                        await db.collection('users').doc(result.user.uid).update({
+                            lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        });
+                    }
+                }
+                set({ isLoading: false });
+            } else {
+                // Mobile: Not yet implemented with expo-auth-session
+                set({
+                    isLoading: false,
+                    error: 'Google ile giriş mobilde şu an için kullanılamıyor. Lütfen e-posta ve şifre ile giriş yapın.'
+                });
+            }
         } catch (error: any) {
             console.error('❌ Google Sign-In Error:', error);
+            if (error.code === 'auth/popup-closed-by-user') {
+                set({ isLoading: false, error: null });
+                return;
+            }
+            if (error.code === 'auth/cancelled-popup-request') {
+                set({ isLoading: false, error: null });
+                return;
+            }
             set({ isLoading: false, error: 'Google ile giriş yapılırken bir hata oluştu' });
             throw error;
         }
